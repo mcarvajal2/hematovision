@@ -25,7 +25,7 @@
     </div>
   </header>
   <main class="shell workspace">
-    <section class="notice" role="note"><strong>Uso educativo y experimental.</strong> No es un dispositivo médico y no debe utilizarse para diagnóstico ni decisiones clínicas.</section>
+    <section class="notice" role="note"><strong>Uso educativo y experimental.</strong> No es un dispositivo médico y no debe utilizarse para diagnóstico ni decisiones clínicas. El modelo clasifica cada imagen capturada como una de nueve categorías; no detecta, segmenta ni distingue células individuales dentro del cuadro, y el modo automático puede volver a contar la misma célula varias veces. El total mostrado es una demostración de clasificaciones sucesivas, no un conteo hematológico real.</section>
     <section class="app-grid" aria-labelledby="analyzer-title">
       <article class="camera-card">
         <div class="section-heading"><div><span class="step">01</span><h2 id="analyzer-title">Captura</h2></div><span id="camera-status" class="status" data-state="pending">Cámara inactiva</span></div>
@@ -39,13 +39,14 @@
       </article>
       <article class="results-card">
         <div class="section-heading"><div><span class="step">02</span><h2>Clasificación</h2></div><span id="model-status" class="status" data-state="pending">Cargando modelo</span></div>
-        <fieldset class="mode-switch" aria-label="Modo de clasificación"><label><input type="radio" name="mode" value="manual" checked><span>Manual</span></label><label><input type="radio" name="mode" value="automatic"><span>Automático</span></label></fieldset>
+        <fieldset class="mode-switch" aria-label="Modo de clasificación"><label><input type="radio" name="mode" value="manual" checked><span>Manual</span></label><label><input type="radio" name="mode" value="automatic"><span>Automático (demo)</span></label></fieldset>
+        <p id="automatic-note" class="mode-note" hidden>Modo demostrativo: clasifica el cuadro completo cada 2 segundos sin detectar células individuales; puede repetir la misma célula. No representa un conteo hematológico real.</p>
         <div class="controls"><button id="capture" class="button primary" type="button" disabled>Analizar captura</button><button id="start" class="button primary" type="button" hidden disabled>Iniciar conteo</button><button id="pause" class="button secondary" type="button" hidden disabled>Pausar</button><button id="reset" class="button ghost" type="button">Reiniciar</button></div>
-        <div class="total"><span>Total sin plaquetas</span><strong id="total">0</strong><small>/ 100</small></div>
+        <div class="total"><span>Clasificaciones acumuladas (demo, sin plaquetas)</span><strong id="total">0</strong><small>/ 100</small></div>
         <div id="counter-list" class="counter-list" aria-live="polite"></div>
       </article>
     </section>
-    <section id="acerca" class="about"><span class="step">03</span><div><h2>Acerca del modelo</h2><p>Red convolucional entrenada con imágenes de frotis de sangre periférica. Recibe imágenes RGB de 150 × 150 píxeles y devuelve probabilidades para nueve clases celulares.</p></div></section>
+    <section id="acerca" class="about"><span class="step">03</span><div><h2>Acerca del modelo</h2><p>Red convolucional entrenada con imágenes individuales etiquetadas, presumiblemente centradas en una célula de frotis de sangre periférica. Recibe imágenes RGB de 150 × 150 píxeles y devuelve probabilidades para nueve clases celulares; siempre elige la más probable de esas nueve, incluso ante imágenes que no correspondan a ninguna de ellas. No incluye detección ni segmentación de células dentro de un cuadro completo.</p></div></section>
   </main>
   <footer><div class="shell"><span>HematoVision · Proyecto de ciencia de datos</span><a href="https://github.com/datascientist-miguel" rel="noopener noreferrer">GitHub</a></div></footer>
   <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
