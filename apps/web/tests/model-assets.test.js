@@ -15,12 +15,6 @@ describe('modelo web publicado', () => {
     );
   });
 
-  // Smoke test pendiente: cargar el modelo real con CellClassifier.load() y
-  // correr una predicción de humo. Requiere servir public/model por HTTP
-  // (p. ej. `vite preview` + Playwright) o instalar @tensorflow/tfjs-node
-  // (bindings nativos) para resolver tf.loadLayersModel contra el filesystem.
-  // Ninguno está configurado en este repo todavía; no fabricar un fetch/mock
-  // que oculte si la carga real del modelo (incluido el shim de L2) sigue
-  // funcionando.
-  it.skip('CellClassifier.load() carga el modelo real y predice sin errores', () => {});
+  // La carga real del modelo (tf.loadLayersModel, incluido el shim de L2) se
+  // prueba en tests/classifier.test.js.
 });
