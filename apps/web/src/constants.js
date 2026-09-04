@@ -7,3 +7,4 @@ export const MODEL_SIZE=150;
 // filtra predicciones obviamente ambiguas; no está calibrado contra un set de
 // validación negativo (fondos, piel, caras, otras tinciones). Ver docs/model-card.md.
 export const MIN_CONFIDENCE=0.6;
+export function isConclusive(confidence){return confidence>=MIN_CONFIDENCE}
