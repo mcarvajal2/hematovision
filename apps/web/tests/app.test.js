@@ -118,4 +118,23 @@ describe('flujo de análisis en app.js', () => {
 
     expect(document.getElementById('automatic-note').hidden).toBe(true);
   });
+
+  it('al alcanzar el límite de 100, una captura posterior no acumula y avisa', async () => {
+    await loadApp();
+    await enableCamera();
+    classifierMocks.predict.mockReturnValue({ label: 'Linfocitos', confidence: 0.9 });
+    const captureButton = document.getElementById('capture');
+
+    for (let i = 0; i < 100; i += 1) {
+      captureButton.click();
+    }
+    expect(document.getElementById('total').textContent).toBe('100');
+
+    captureButton.click();
+
+    expect(document.getElementById('total').textContent).toBe('100');
+    expect(document.getElementById('prediction').textContent).toBe(
+      'Límite de 100 células alcanzado · no se contabiliza',
+    );
+  });
 });
