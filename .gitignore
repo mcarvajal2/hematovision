@@ -1,0 +1,31 @@
+# JavaScript
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local configuration and data
+.env
+.env.*
+!.env.example
+data/raw/
+data/interim/
+artifacts/keras/
+artifacts/experiments/
+
+# DVC cache is local; DVC metadata belongs in Git.
+.dvc/cache/
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

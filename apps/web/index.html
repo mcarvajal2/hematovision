@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Demostración educativa de clasificación de células sanguíneas con IA." />
+  <meta name="theme-color" content="#102a43" />
+  <title>HematoVision · Clasificador celular</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <nav class="nav shell" aria-label="Navegación principal">
+      <a class="brand" href="#">Hemato<span>Vision</span></a>
+      <a class="nav-link" href="#acerca">Acerca del proyecto</a>
+    </nav>
+    <div class="hero-content shell">
+      <p class="eyebrow">Visión artificial aplicada a hematología</p>
+      <h1>Clasificación celular<br><em>en tu navegador</em></h1>
+      <p class="hero-copy">Analiza imágenes desde la cámara con un modelo convolucional entrenado para reconocer nueve tipos de células sanguíneas.</p>
+      <div class="privacy-note"><span aria-hidden="true">●</span> La imagen se procesa localmente y no se envía a un servidor.</div>
+    </div>
+  </header>
+  <main class="shell workspace">
+    <section class="notice" role="note"><strong>Uso educativo y experimental.</strong> No es un dispositivo médico y no debe utilizarse para diagnóstico ni decisiones clínicas.</section>
+    <section class="app-grid" aria-labelledby="analyzer-title">
+      <article class="camera-card">
+        <div class="section-heading"><div><span class="step">01</span><h2 id="analyzer-title">Captura</h2></div><span id="camera-status" class="status" data-state="pending">Cámara inactiva</span></div>
+        <div class="viewport">
+          <video id="video" playsinline autoplay muted></video>
+          <canvas id="canvas" width="400" height="400" aria-label="Vista de la cámara"></canvas>
+          <div id="camera-placeholder" class="placeholder"><span class="lens" aria-hidden="true"></span><p>Activa la cámara para comenzar</p></div>
+          <div id="prediction" class="prediction" aria-live="polite"></div>
+        </div>
+        <div class="camera-actions"><button id="enable-camera" class="button primary" type="button">Activar cámara</button><button id="switch-camera" class="button secondary" type="button" disabled>Cambiar cámara</button></div>
+      </article>
+      <article class="results-card">
+        <div class="section-heading"><div><span class="step">02</span><h2>Clasificación</h2></div><span id="model-status" class="status" data-state="pending">Cargando modelo</span></div>
+        <fieldset class="mode-switch" aria-label="Modo de clasificación"><label><input type="radio" name="mode" value="manual" checked><span>Manual</span></label><label><input type="radio" name="mode" value="automatic"><span>Automático</span></label></fieldset>
+        <div class="controls"><button id="capture" class="button primary" type="button" disabled>Analizar captura</button><button id="start" class="button primary" type="button" hidden disabled>Iniciar conteo</button><button id="pause" class="button secondary" type="button" hidden disabled>Pausar</button><button id="reset" class="button ghost" type="button">Reiniciar</button></div>
+        <div class="total"><span>Total sin plaquetas</span><strong id="total">0</strong><small>/ 100</small></div>
+        <div id="counter-list" class="counter-list" aria-live="polite"></div>
+      </article>
+    </section>
+    <section id="acerca" class="about"><span class="step">03</span><div><h2>Acerca del modelo</h2><p>Red convolucional entrenada con imágenes de frotis de sangre periférica. Recibe imágenes RGB de 150 × 150 píxeles y devuelve probabilidades para nueve clases celulares.</p></div></section>
+  </main>
+  <footer><div class="shell"><span>HematoVision · Proyecto de ciencia de datos</span><a href="https://github.com/datascientist-miguel" rel="noopener noreferrer">GitHub</a></div></footer>
+  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
