@@ -36,6 +36,9 @@ GitHub Actions compila `apps/web` y publica `apps/web/dist` en GitHub Pages al i
 
 ## Documentación
 
+- [Punto de entrada para agentes](AGENTS.md)
+- [Índice de conocimiento del proyecto](docs/index.md)
+- [Estado del proyecto](docs/project-status.md)
 - [Arquitectura](docs/architecture.md)
 - [Protocolo de actualización](docs/update-protocol.md)
 - [Ficha del modelo](docs/model-card.md)

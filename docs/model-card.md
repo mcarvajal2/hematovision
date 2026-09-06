@@ -4,6 +4,8 @@
 
 Modelo heredado, pendiente de validación reproducible. Uso exclusivamente educativo y demostrativo.
 
+La accuracy histórica de test fue aproximadamente 98,92 %, pero no es una estimación fiable de generalización: el augmentation físico ocurrió antes del split por archivo, lo que crea un riesgo de leakage **confirmado**. El leakage entre pares concretos sigue sin demostrarse. No existe validación clínica. Contexto y evidencia: [historia y baseline histórico](project-history.md).
+
 ## Entrada y salida
 
 - Entrada: imagen RGB normalizada de 150 × 150 píxeles.
@@ -12,6 +14,7 @@ Modelo heredado, pendiente de validación reproducible. Uso exclusivamente educa
 ## Limitaciones
 
 - No existe evidencia de validación clínica en este repositorio.
+- El modelo histórico mezcla dos datasets públicos de dominios de adquisición distintos y no fue evaluado por fuente ni por paciente/frotis; véase [procedencia de datasets](dataset-provenance.md).
 - El rendimiento puede variar según microscopio, tinción, iluminación y población.
 - Una predicción no equivale a un diagnóstico.
 - El modelo no detecta ni segmenta células dentro de un cuadro: clasifica la imagen completa como una de las nueve clases. El modo automático de la app puede volver a contar la misma célula varias veces; el total mostrado es demostrativo, no un conteo hematológico.

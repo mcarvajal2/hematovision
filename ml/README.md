@@ -1,6 +1,6 @@
 # Machine learning
 
-El notebook histórico se conserva en `notebooks/Hematologia.ipynb` como referencia. La lógica nueva debe migrar gradualmente a módulos bajo `src/` y pruebas bajo `tests/`.
+El notebook histórico se conserva en `notebooks/Hematologia.ipynb` como referencia y evidencia; no debe corregirse ni modernizarse silenciosamente. Su reconstrucción y limitaciones están en [docs/project-history.md](../docs/project-history.md). La lógica nueva debe migrar gradualmente a módulos bajo `src/` y pruebas bajo `tests/`.
 
 ## Entorno
 
