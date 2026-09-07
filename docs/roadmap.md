@@ -19,6 +19,8 @@ Cierre: no queda ninguna pregunta arqueológica local por investigar con los art
 
 ## Fase 2 — Baseline reproducible
 
+Plan detallado (propuesta, no ejecutada): [Plan de Fase 2](phase2-plan.md).
+
 - Definir dataset versionado fuera de Git.
 - Eliminar leakage y definir split reproducible.
 - Usar paciente/lámina como unidad independiente si los datos lo permiten.
