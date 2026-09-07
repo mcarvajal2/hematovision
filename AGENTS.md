@@ -15,6 +15,7 @@ HematoVision es una aplicación web educativa que clasifica imágenes de nueve t
 - Motivos de decisiones de alcance: [Decisiones](docs/decisions.md).
 - Protocolo para registrar ejecuciones futuras de ML: [Experimentos](docs/experiments.md).
 - Orden de evolución: [Roadmap](docs/roadmap.md).
+- Cómo se coordina un equipo multiagente en este repositorio (roles, delegación, revisión, escalamiento): [Flujo de trabajo multiagente](docs/agent-workflow.md).
 - Implementación y despliegue actuales: [Arquitectura](docs/architecture.md), [ficha del modelo](docs/model-card.md) y [protocolo de actualización](docs/update-protocol.md).
 
 ## Preservación

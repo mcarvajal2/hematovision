@@ -19,6 +19,7 @@ Este índice separa evidencia histórica, interpretación actual y trabajo futur
 | por qué se eligió una dirección | [Decisiones](decisions.md) |
 | cómo registrar o comparar una ejecución futura | [Experimentos](experiments.md) |
 | en qué orden evolucionar | [Roadmap](roadmap.md) |
+| cómo se coordina un equipo multiagente (roles, delegación, revisión, escalamiento) | [Flujo de trabajo multiagente](agent-workflow.md) |
 | cómo funciona el repositorio y la web hoy | [Arquitectura](architecture.md) |
 | alcance y límites del modelo publicado | [Ficha del modelo](model-card.md) |
 | cómo cambiar aplicación o modelo | [Protocolo de actualización](update-protocol.md) |
