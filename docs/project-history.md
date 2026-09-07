@@ -5,7 +5,7 @@ Este documento es la fuente de verdad sobre el proyecto histórico. Distingue lo
 ## Línea de tiempo
 
 - **CONFIRMADO — diciembre de 2023 a enero de 2024:** desarrollo histórico principal.
-- **CONFIRMADO — enero de 2024:** notebook principal `Hematologia.ipynb`; modelo final `mejor_modelo.h5`; modelos anteriores `modelo_1.h5` y `modelo_1_balanced.h5`; exportación a TensorFlow.js.
+- **CONFIRMADO — enero de 2024:** notebook principal `Hematologia.ipynb`; modelo final `mejor_modelo.h5`; modelos anteriores `modelo_1.h5` y `modelo_1_balanced.h5`; exportación a TensorFlow.js. Los tres `.h5` comparten arquitectura idéntica; `modelo_1_balanced.h5` es un re-guardado congelado (sin estado de optimizador) byte a byte idéntico a `modelo_1.h5`, y `mejor_modelo.h5` es un estado de entrenamiento genuinamente posterior. Procedencia exacta del proceso que generó cada uno: PENDIENTE. Evidencia completa en [Investigaciones — HIST-MODELS-004](research.md#hist-models-004-reconstrucción-de-modelo_1h5-modelo_1_balancedh5-y-mejor_modeloh5).
 - **CONFIRMADO — septiembre de 2026:** modernización/publicación del repositorio versionado `mcarvajal2/hematovision`.
 
 El notebook en `ml/notebooks/Hematologia.ipynb` tiene el mismo SHA-256 que la copia histórica inspeccionada. Se conserva sin cambios como evidencia. Los artefactos históricos locales y el dataset no se versionan ni se modifican desde este repositorio.

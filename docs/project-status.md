@@ -1,13 +1,13 @@
 # Estado del proyecto
 
-**Actualizado:** 2026-09-05
-**Fase actual:** Fase 0 — preservación y arqueología; procedencia de datasets y comprensión técnica inicial de Fase 1 completadas.
+**Actualizado:** 2026-09-07
+**Fase actual:** Fase 0 — preservación y arqueología; procedencia de datasets, comprensión técnica inicial de Fase 1, y arquitectura/relación de los tres modelos históricos completadas.
 
 ## Dónde estamos
 
 - **Último hito:** el repositorio moderno fue inicializado/publicado en septiembre de 2026, conservando el notebook histórico y la aplicación web con el modelo exportado.
-- **Último trabajo:** identificación local y externa de las dos fuentes históricas, persistida en [Procedencia de datasets](dataset-provenance.md), sin alterar datos.
-- **Trabajo activo:** recuperar, si existe, una relación crop→campo/frotis/paciente y documentar modelos/entorno históricos antes de cambiar ML o el pipeline.
+- **Último trabajo:** reconstrucción de la arquitectura y relación entre `modelo_1.h5`, `modelo_1_balanced.h5` y `mejor_modelo.h5` mediante inspección de solo lectura (HDF5 + comparación byte a byte de pesos), ejecutada con un flujo multiagente documentado en [Flujo de trabajo multiagente](agent-workflow.md). Resultado persistido en [Investigaciones — HIST-MODELS-004](research.md#hist-models-004-reconstrucción-de-modelo_1h5-modelo_1_balancedh5-y-mejor_modeloh5).
+- **Trabajo activo:** recuperar, si existe, una relación crop→campo/frotis/paciente y documentar el entorno histórico (CUDA/GPU); la procedencia exacta del proceso que generó cada uno de los tres modelos sigue pendiente por falta de logs de entrenamiento.
 - **Hallazgo principal:** el pipeline histórico aumentó imágenes y las mezcló antes de dividir por archivo. El riesgo de leakage del pipeline es **CONFIRMADO**; leakage efectivo entre pares concretos de splits es **PROBABLE**, aún no demostrado par a par.
 - **Decisión vigente:** el notebook y modelo históricos se preservan como baseline/evidencia; las mejoras serán una evolución nueva y reproducible. Véase [DEC-001](decisions.md#dec-001-preservar-el-baseline-histórico).
 - **Hallazgo nuevo:** el notebook documenta desde `Labelled_mix` hasta evaluación, pero no la integración de fuentes, los modelos previos ni la exportación TensorFlow.js. Su metadata dice `tf-cpu`, aunque no prueba el dispositivo real de entrenamiento.
@@ -20,6 +20,7 @@
 - Reconstrucción técnica del notebook y del pipeline histórico.
 - Identificación de los datasets fuente y documentación de su procedencia.
 - Documentación del riesgo estructural de leakage.
+- Reconstrucción de arquitectura y relación entre `modelo_1.h5`, `modelo_1_balanced.h5` y `mejor_modelo.h5` (ver HIST-MODELS-004).
 
 No hay modernización ni entrenamiento nuevo en curso.
 

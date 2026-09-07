@@ -6,7 +6,7 @@ El roadmap ordena la evolución; no autoriza por sí mismo a modificar el baseli
 
 - Preservar artefactos históricos y documentar pipeline.
 - [x] Identificar orígenes públicos y límite de trazabilidad de los datasets ([evidencia](dataset-provenance.md)).
-- Investigar modelos anteriores y CUDA/GPU histórica.
+- [x] Investigar arquitectura y relación de los modelos anteriores ([evidencia](research.md#hist-models-004-reconstrucción-de-modelo_1h5-modelo_1_balancedh5-y-mejor_modeloh5)); procedencia exacta del proceso que los generó y CUDA/GPU histórica siguen pendientes.
 
 ## Fase 1 — Comprensión
 

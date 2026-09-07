@@ -70,6 +70,30 @@ Registro de preguntas y evidencia. Estados permitidos: `OPEN`, `IN PROGRESS`, `R
 
 **Impacto potencial:** alto; permite separar los dominios de origen y plantea una futura evaluación externa de cinco clases comunes, pero no autoriza aún un experimento.
 
+## HIST-MODELS-004 — Reconstrucción de `modelo_1.h5`, `modelo_1_balanced.h5` y `mejor_modelo.h5`
+
+**Estado:** RESOLVED (para arquitectura y relación entre archivos); PENDIENTE la procedencia exacta del proceso/corrida que generó cada uno
+**Fecha:** 2026-09-07
+**Pregunta:** ¿Qué arquitectura y resultados corresponden a `modelo_1.h5` y `modelo_1_balanced.h5`, y cómo se relacionan con `mejor_modelo.h5`? (preguntas 7 y 8, más abajo)
+
+**Contexto y evidencia revisada:** inspección de solo lectura de los tres `.h5` (`D:\Datasets\dataset_hematologia\Modelos\modelo_1.h5`, `modelo_1_balanced.h5`, y `artifacts/keras/mejor_modelo.h5`) vía metadatos HDF5 (`h5py`, sin cargar los modelos en un runtime Keras/TensorFlow) y comparación numérica exacta de los 184 tensores de `model_weights`; hashes SHA-256, tamaños y fechas de sistema de archivos calculados de forma independiente dos veces; búsqueda de referencias en `Hematologia.ipynb` (copia histórica y la preservada en este repositorio) y en el repositorio histórico `Proyecto Hematología` (sin historial Git recuperable: `git` rechaza el directorio por "dubious ownership" y nadie cambió esa configuración sin autorización).
+
+**Hallazgos:**
+
+- **CONFIRMADO:** los tres archivos comparten topología idéntica (77 capas: 1 InputLayer, 32 Conv2D, 32 BatchNormalization, 4 MaxPooling2D, 1 Flatten, 4 Dense, 3 Dropout), misma entrada `(None,150,150,3)`, misma salida softmax de 9 clases y 4.372.857 parámetros totales — coincide con la arquitectura de `mejor_modelo.h5` ya documentada en [notebook-analysis.md](notebook-analysis.md).
+- **CONFIRMADO:** la diferencia de tamaño en disco entre `modelo_1_balanced.h5` (17,7 MB) y los otros dos (~53 MB) no refleja una arquitectura distinta; se debe a que `modelo_1_balanced.h5` no tiene estado de optimizador Adam guardado (sus 76 capas no-`InputLayer` están marcadas `trainable=false`), mientras que `modelo_1.h5` y `mejor_modelo.h5` sí lo tienen completo.
+- **CONFIRMADO** (comparación byte a byte de los 184 tensores de pesos): `modelo_1_balanced.h5` es un re-guardado, congelado y sin estado de optimizador, de exactamente los mismos pesos que `modelo_1.h5`. No es el resultado de un reentrenamiento sobre datos "balanceados" distintos.
+- **CONFIRMADO:** `mejor_modelo.h5` no es una copia ni una continuación trivial de `modelo_1.h5`: sus 184 tensores difieren en su totalidad (diferencia absoluta máxima 33,12; media por tensor 0,42), una magnitud compatible con progreso real de entrenamiento.
+- **INFERIDO** (coincidencia numérica exacta, no lectura directa de un log por época): el learning rate registrado en `modelo_1.h5` (~0,0004) es el valor inicial de Adam; el de `mejor_modelo.h5` (~0,0000032) coincide exactamente con el cuarto valor de la secuencia de `ReduceLROnPlateau` ya documentada en [notebook-analysis.md](notebook-analysis.md#10-callbacks-y-duración) (`0,0004→0,00008→0,000016→0,0000032→0,000001`). Esto sugiere que `modelo_1.h5` es un punto temprano del entrenamiento y `mejor_modelo.h5` uno tardío, cercano al mínimo de `val_loss` en la época 50.
+- **HIPÓTESIS:** `modelo_1.h5` no fue guardado por el único `ModelCheckpoint` presente en el notebook preservado (que escribe solo a `mejor_modelo.h5`); probablemente proviene de una versión distinta del notebook, un `model.save()` manual no preservado, o una corrida separada. No hay evidencia para elegir entre estas opciones.
+- **PENDIENTE:** si `modelo_1.h5` y `mejor_modelo.h5` pertenecen a la misma corrida continua de entrenamiento o a corridas separadas; el propósito funcional de congelar `modelo_1_balanced.h5`; y si el historial Git de `Proyecto Hematología` (actualmente inaccesible) contendría evidencia adicional.
+
+**Conclusión:** la relación estructural entre los tres archivos queda confirmada (mismo backbone; `modelo_1_balanced.h5` es un congelado de `modelo_1.h5`; `mejor_modelo.h5` es un estado de entrenamiento genuinamente posterior). La procedencia exacta del proceso que generó cada checkpoint permanece abierta.
+
+**Preguntas nuevas:** ¿existen logs de entrenamiento (`history.json` u equivalente) que registren val_loss/LR por época y permitan confirmar si `modelo_1.h5` y `mejor_modelo.h5` son la misma corrida? Si se autoriza resolver el bloqueo de Git en `Proyecto Hematología`, ¿su historial menciona `modelo_1.h5`/`modelo_1_balanced.h5`?
+
+**Impacto potencial:** medio; completa la arquitectura y relación entre los tres artefactos históricos, pero no cambia el estado de preservación (siguen siendo evidencia de solo lectura) ni el roadmap de un baseline reproducible.
+
 ## Preguntas abiertas
 
 Todas están `OPEN` salvo que una investigación posterior indique lo contrario.
@@ -80,9 +104,11 @@ Todas están `OPEN` salvo que una investigación posterior indique lo contrario.
 4. ¿Qué versión exacta de TensorFlow se usó para entrenamiento?
 5. ¿Qué versión histórica de CUDA/cuDNN existía?
 6. ¿Se utilizó realmente la GTX 1050 durante algún entrenamiento?
-7. ¿Qué arquitectura y resultados correspondieron a `modelo_1.h5`?
-8. ¿Qué arquitectura y resultados correspondieron a `modelo_1_balanced.h5`?
+7. ¿Qué arquitectura y resultados correspondieron a `modelo_1.h5`? — **PARCIALMENTE RESUELTA**: arquitectura confirmada, idéntica a `mejor_modelo.h5` ([HIST-MODELS-004](#hist-models-004-reconstrucción-de-modelo_1h5-modelo_1_balancedh5-y-mejor_modeloh5)); resultados (accuracy/loss de esa corrida específica) siguen PENDIENTES por falta de logs.
+8. ¿Qué arquitectura y resultados correspondieron a `modelo_1_balanced.h5`? — **PARCIALMENTE RESUELTA**: es un re-guardado congelado, byte a byte idéntico a `modelo_1.h5` ([HIST-MODELS-004](#hist-models-004-reconstrucción-de-modelo_1h5-modelo_1_balancedh5-y-mejor_modeloh5)); su propósito funcional sigue PENDIENTE.
 9. ¿Cuánto leakage efectivo existe entre train/validation/test?
 10. ¿Podemos reconstruir relaciones original→imagen aumentada?
 11. ¿Cuál sería el rendimiento de la CNN histórica sobre un split metodológicamente correcto?
 12. ¿Qué definición semántica y protocolo serían adecuados para una futura evaluación externa de las cinco clases compartidas entre fuentes?
+13. ¿Existen logs de entrenamiento (`history.json` u equivalente) que permitan confirmar si `modelo_1.h5` y `mejor_modelo.h5` pertenecen a la misma corrida de entrenamiento?
+14. ¿Cuál era el propósito funcional de congelar `modelo_1_balanced.h5` (transfer learning, exportación, rama de entrenamiento distinta)?
