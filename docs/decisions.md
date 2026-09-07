@@ -31,3 +31,18 @@ Registro liviano de decisiones no triviales. Estados: `PROPOSED`, `ACCEPTED`, `S
 **Razones:** ninguna de las alternativas tiene respaldo técnico — inventar una resolución para un conflicto de anotación de un dataset público de terceros no es una decisión de ingeniería, y silenciarlo contradice el principio de este proyecto de no ocultar discrepancias.
 
 **Consecuencias:** el split pierde 2 imágenes (de 30.224) hasta que se resuelva la etiqueta; el manifiesto documenta la cuarentena como reversible si en el futuro aparece evidencia (p. ej. de los autores de PBC) que permita resolverla. No bloquea el resto del split ni el resto de Fase 2.
+
+## DEC-003 -- Congelamiento del split de Fase 2 (train/val/test) sin DVC
+
+**Estado:** ACCEPTED
+**Fecha:** 2026-09-07
+
+**Contexto:** el manifiesto de originales entregó una propuesta definitiva de split (80/10/10, semilla 20260907, cuarentena DEC-002) verificada independientemente dos veces, con identificador SHA-256 010a820d46cb2bf43c4d922405da61003087215dc8315ceb284d08624acf31e1 sobre manifest_v2.csv. Miguel aprobó explícitamente congelarla. DVC no está inicializado todavía.
+
+**Decisión:** congelar el split registrando su identificador SHA-256 y metadatos (conteos, semilla, cuarentena, política de uso del test) en un archivo pequeño versionado en Git (ml/split_freeze.json), en vez de esperar a DVC. ml/scripts/build_split.py y ml/scripts/verify_split_freeze.py leen ese archivo y abortan si una asignación recalculada no coincide exactamente con el hash congelado, en vez de sobrescribir manifest_v2.csv en silencio. El manifiesto grande sigue fuera de Git.
+
+**Alternativas consideradas:** esperar a inicializar DVC antes de congelar nada (bloquearía Fase 2 sin justificación real, ya que DVC es una decisión de infraestructura/costo separada); congelar solo de forma informal en un documento sin ningún mecanismo ejecutable que lo verifique.
+
+**Razones:** un identificador de hash commiteado más un guard ejecutable da inmutabilidad práctica y verificable sin requerir infraestructura remota todavía no autorizada.
+
+**Consecuencias:** el test queda disponible para EXP-REPRO cuando se autorice el entrenamiento, bajo la política de uso único y de no calibrar hiperparámetros/umbrales sobre él. Congelar el split no autoriza DVC, entrenamiento, augmentation ni cambios al modelo publicado -- cada uno sigue requiriendo su propia autorización explícita. Si se resuelve la etiqueta del grupo en cuarentena, se generaría una manifest_v3.csv y una nueva decisión, no se modificaría este freeze retroactivamente.

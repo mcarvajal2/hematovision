@@ -1,8 +1,8 @@
 # Manifiesto de originales (Fase 2) — inventario auditable
 
-**Estado:** inventario construido y verificado de forma independiente (dos rondas). Miguel aprobó la cuarentena del grupo conflictivo, la proporción 80/10/10 y la semilla `20260907`, y aprobó el manifiesto como base de trabajo. **El test sigue SIN congelar** — esta ronda entrega la propuesta definitiva de split, no su congelamiento. Este documento no autoriza entrenamiento, DVC ni ningún cambio de modelo.
+**Estado:** inventario construido y verificado de forma independiente (dos rondas). Miguel aprobó la cuarentena del grupo conflictivo, la proporción 80/10/10 y la semilla `20260907`, y aprobó el manifiesto como base de trabajo. **El test quedó CONGELADO el 2026-09-07 (DEC-003), identificador SHA-256 `010a820d46cb2bf43c4d922405da61003087215dc8315ceb284d08624acf31e1` sobre `manifest_v2.csv`. Mecanismo de freeze: `ml/split_freeze.json` + guard en `ml/scripts/build_split.py` + `ml/scripts/verify_split_freeze.py`.** Este documento no autoriza entrenamiento, DVC ni ningún cambio de modelo.
 
-**Fuente de verdad relacionada:** [Procedencia de datasets](dataset-provenance.md) (de dónde vienen `Labelled`/`Labelled_2`, por qué se excluye `ig`) y [Plan de Fase 2](phase2-plan.md) (diseño completo, del que este documento ejecuta las tareas 1-4, sin congelar el test). No se duplica esa evidencia aquí, solo se referencia.
+**Fuente de verdad relacionada:** [Procedencia de datasets](dataset-provenance.md) (de dónde vienen `Labelled`/`Labelled_2`, por qué se excluye `ig`) y [Plan de Fase 2](phase2-plan.md) (diseño completo, del que este documento ejecuta las tareas 1-4, incluido el congelamiento del test). No se duplica esa evidencia aquí, solo se referencia.
 
 **Método:** script `ml/scripts/build_manifest.py` (solo lectura; sin TensorFlow/Keras/DVC), ejecutado sobre `D:\Datasets\dataset_hematologia\Labelled` y `Labelled_2` (excluyendo `ig`, como ya documentaba `dataset-provenance.md`). Ningún archivo original fue movido, modificado, eliminado ni aumentado. Verificado de forma independiente por un segundo agente: relectura completa de la lógica, reagrupación completa del CSV por hash, y recálculo de SHA-256 sobre una muestra estratificada de 250 archivos (0 discrepancias) más los dos archivos del conflicto de etiqueta (ver abajo), byte a byte.
 
@@ -52,11 +52,11 @@ Los otros 14 grupos son pares dentro de una misma clase (Basófilos ×6 pares, E
 ## 3. Esquema y ubicación del manifiesto
 
 - **`ml/data/manifest_v1.csv`** — inventario crudo (paths/hashes/clases/tamaños, sin split definitivo). Generado por [`ml/scripts/build_manifest.py`](../ml/scripts/build_manifest.py).
-- **`ml/data/manifest_v2.csv`** — **propuesta definitiva de split** (esta ronda), con la cuarentena aplicada y el split 80/10/10 aprobado. Generado por [`ml/scripts/build_split.py`](../ml/scripts/build_split.py) a partir de `manifest_v1.csv` (no vuelve a leer ni hashear ninguna imagen). Mismas columnas que v1; `split_propuesto` ahora toma valores `train`/`val`/`test`/`cuarentena` (nunca vacío).
+- **`ml/data/manifest_v2.csv`** — **split definitivo congelado** (DEC-003), con la cuarentena aplicada y el split 80/10/10 aprobado. Generado por [`ml/scripts/build_split.py`](../ml/scripts/build_split.py) a partir de `manifest_v1.csv` (no vuelve a leer ni hashear ninguna imagen). Mismas columnas que v1; `split_propuesto` ahora toma valores `train`/`val`/`test`/`cuarentena` (nunca vacío).
 - Ambos **fuera de Git** (`ml/data/` en `.gitignore`), consistente con `ml/README.md` mientras no exista DVC. Los scripts que los generan sí están versionados.
-- **Identificador reproducible de esta propuesta:** SHA-256 de `manifest_v2.csv` = `010a820d46cb2bf43c4d922405da61003087215dc8315ceb284d08624acf31e1` (4.273.600 bytes, 30.224 filas). Verificado de forma independiente de dos maneras: (a) recalculando el hash del archivo existente, (b) re-ejecutando `build_split.py` en un **proceso Python nuevo** (no solo una segunda corrida dentro del mismo script) y confirmando el mismo SHA-256 exacto.
+- **Identificador reproducible del split congelado:** SHA-256 de `manifest_v2.csv` = `010a820d46cb2bf43c4d922405da61003087215dc8315ceb284d08624acf31e1` (4.273.600 bytes, 30.224 filas). Verificado de forma independiente de dos maneras: (a) recalculando el hash del archivo existente, (b) re-ejecutando `build_split.py` en un **proceso Python nuevo** (no solo una segunda corrida dentro del mismo script) y confirmando el mismo SHA-256 exacto.
 
-## 4. Propuesta de split definitiva (aprobada por Miguel, NO congelada)
+## 4. Split definitivo congelado (aprobado por Miguel, DEC-003)
 
 **Unidad de asignación:** grupo de SHA-256 idéntico (no el archivo individual) — así los 14 grupos duplicados sin conflicto no pueden terminar repartidos entre splits distintos, y el grupo en cuarentena no puede aparecer en ninguno. **Verificado independientemente dos veces: 0 grupos cruzan splits.**
 
@@ -77,7 +77,7 @@ Los otros 14 grupos son pares dentro de una misma clase (Basófilos ×6 pares, E
 
 Por fuente: Bodzas — train 12.783, val 1.602, test 1.642, cuarentena 0 (total 16.027, sin cuarentena porque el conflicto es exclusivamente PBC). PBC — train 11.394, val 1.420, test 1.381, cuarentena 2 (total 14.197).
 
-**Reproducibilidad verificada dos veces de forma independiente:** (1) dos corridas de la función de asignación dentro del script de Terra, resultado idéntico fila por fila; (2) re-ejecución completa de Luna en un proceso Python nuevo, mismo SHA-256 exacto del CSV resultante. **Sigue sin congelarse** — es la propuesta definitiva, pendiente de tu revisión final antes de fijarla como test inmóvil.
+**Reproducibilidad verificada dos veces de forma independiente:** (1) dos corridas de la función de asignación dentro del script de Terra, resultado idéntico fila por fila; (2) re-ejecución completa de Luna en un proceso Python nuevo, mismo SHA-256 exacto del CSV resultante. El split quedó **congelado** como test inmóvil el 2026-09-07 mediante DEC-003.
 
 ## 5. Validaciones ejecutadas
 
@@ -95,17 +95,19 @@ Por fuente: Bodzas — train 12.783, val 1.602, test 1.642, cuarentena 0 (total 
 12. 0 filas con `split_propuesto` vacío o fuera de `{train, val, test, cuarentena}`.
 13. Ningún grupo de hash (incluida la cuarentena) aparece repartido entre dos valores distintos de `split_propuesto` — revisión completa de las 30.224 filas, no muestral, confirmada dos veces.
 
-## 6. Riesgos que impiden congelar el test todavía
+## 6. Limitaciones que se mantienen explícitas tras el congelamiento
 
 - **El split no logra independencia biológica.** Es una mejora real sobre 2024 (corrige el mecanismo de leakage por augmentation-antes-de-split y agrupa duplicados exactos), pero no hay ID de paciente/frotis/campo en ninguna copia local (`dataset-provenance.md`, "Situación D"). No debe comunicarse como split independiente a secas.
 - **Duplicados no exactos no están cubiertos.** Solo se detectan duplicados con SHA-256 idéntico; recortes ligeramente distintos de la misma célula/campo (si existieran) no se detectan con este método y quedan como límite conocido, no resuelto.
 - **El conflicto de etiqueta permanece sin resolver a nivel de anotación** (solo se puso en cuarentena, no se investigó su causa en la fuente pública) — no bloquea congelar el resto del split, pero sí bloquea usar esas dos imágenes específicas para cualquier propósito hasta una decisión de anotación.
-- **La congelación del test sigue pendiente de tu revisión final** de esta propuesta (conteos, proporción, semilla, identificador SHA-256) — no se congela automáticamente por haber sido verificada.
+- **La falta de independencia biológica y los duplicados no exactos no dejan de ser limitaciones por el congelamiento.** Ya no bloquean congelar el split, pero sí bloquean afirmar independencia biológica.
 
 ## 7. Archivos modificados y estado de Git
 
 - **Nuevo, versionado:** `ml/scripts/build_manifest.py` (construye `manifest_v1.csv` desde las imágenes).
 - **Nuevo, versionado:** `ml/scripts/build_split.py` (construye `manifest_v2.csv`, la propuesta definitiva, desde `manifest_v1.csv` — no vuelve a tocar imágenes).
+- **Nuevo, versionado:** `ml/split_freeze.json` (ancla el split congelado de DEC-003).
+- **Nuevo, versionado:** `ml/scripts/verify_split_freeze.py` (verifica en modo solo lectura el freeze de DEC-003).
 - **Nuevo/actualizado, versionado:** `docs/dataset-manifest.md` (este documento).
 - **Nuevo, versionado:** [DEC-002](decisions.md#dec-002-cuarentena-del-grupo-de-hash-conflictivo-en-lugar-de-elegir-etiqueta) en `docs/decisions.md`.
 - **Modificado, versionado:** `.gitignore` (+`ml/data/`, ya cubre ambos manifiestos).
@@ -114,10 +116,12 @@ Por fuente: Bodzas — train 12.783, val 1.602, test 1.642, cuarentena 0 (total 
 
 ## 8. Confirmación explícita
 
-**El test NO está congelado.** `manifest_v2.csv` es la propuesta definitiva de split (cuarentena aplicada, proporción y semilla aprobadas, reproducibilidad verificada dos veces de forma independiente), pero congelarla como test inmóvil para entrenamiento/evaluación es un paso posterior, explícitamente no autorizado en esta ronda.
+**El test SÍ está congelado.** El identificador SHA-256 de `manifest_v2.csv` es `010a820d46cb2bf43c4d922405da61003087215dc8315ceb284d08624acf31e1`. El mecanismo es `ml/split_freeze.json`, el guard de `ml/scripts/build_split.py` y `ml/scripts/verify_split_freeze.py`.
 
-## 9. Decisiones que necesitas aprobar antes de congelar
+El test se usa una sola vez por experimento y nunca para elegir hiperparámetros ni umbrales: esos se calibran sobre validation. Este congelamiento sigue sin autorizar DVC, entrenamiento/EXP-REPRO, augmentation física, descargas grandes, modificar el modelo publicado, ni re-etiquetar o sacar de cuarentena el grupo conflictivo.
 
-1. **Confirmar esta propuesta definitiva** (conteos, proporción 80/10/10, semilla `20260907`, identificador SHA-256 `010a820d…acf31e1`) como la que se congelará, o pedir cambios.
-2. **Autorizar el congelamiento del test** — es decir, pasar de "propuesta verificada" a "congelado" (tarea 4 de `phase2-plan.md`), incluyendo decidir cómo se registra/publica el hash del listado de test (¿en `docs/experiments.md`, en un archivo `.dvc` cuando exista, o ambos?).
+## 9. Decisiones de congelamiento
+
+1. **Resuelto/aprobado (DEC-003):** confirmar esta propuesta definitiva (conteos, proporción 80/10/10, semilla `20260907`, identificador SHA-256 `010a820d…acf31e1`) como la congelada.
+2. **Resuelto/aprobado (DEC-003):** autorizar el congelamiento del test, registrado en `ml/split_freeze.json` y verificado por los scripts de freeze, sin esperar DVC.
 3. Si en algún momento aparece evidencia que permita resolver la etiqueta del grupo en cuarentena (Sección 2.1), decidir si se reincorpora a una `manifest_v3.csv` o queda cuarentenado indefinidamente.

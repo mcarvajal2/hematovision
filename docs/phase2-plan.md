@@ -32,7 +32,7 @@ Inspección directa de código el 2026-09-07 (no reconstruida de memoria de conv
 
 ## 2. Dataset y split
 
-**Estado de ejecución (2026-09-07):** tareas 1-4 de la Sección 7 ejecutadas y verificadas de forma independiente — inventario completo en [Manifiesto de originales](dataset-manifest.md). El manifiesto y la propuesta de split existen; **el test NO está congelado** (bloqueado por un conflicto de etiqueta sin resolver y por decisiones de proporción/semilla pendientes de aprobación — ver ese documento). Tareas 5 en adelante (scaffolding, DVC, EXP-REPRO) siguen sin autorizar.
+**Estado de ejecución (2026-09-07):** tareas 1-4 de la Sección 7 ejecutadas y verificadas de forma independiente — inventario completo en [Manifiesto de originales](dataset-manifest.md). El manifiesto y el split 80/10/10 con semilla `20260907` quedaron **congelados** el 2026-09-07 (DEC-003), manteniendo la cuarentena DEC-002. Tareas 5 en adelante (scaffolding, DVC, EXP-REPRO) siguen sin autorizar.
 
 **Restricción de partida (ya confirmada, no se re-investiga):** ninguna copia local conserva ID de paciente, frotis o campo (`dataset-provenance.md`, "Situación D"). Cualquier split que afirme independencia por paciente sería inventado. Este plan no lo hace.
 

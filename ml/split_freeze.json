@@ -1,0 +1,64 @@
+{
+  "_comment": "Registro versionado del split congelado de Fase 2. El manifiesto grande (ml/data/manifest_v2.csv) NO se sube a Git (ver .gitignore, ml/README.md); este archivo pequeno es el ancla reproducible que SI se versiona, hasta que se autorice DVC. No editar a mano: cualquier cambio de asignacion requiere una manifest_v3 y una nueva decision registrada en docs/decisions.md.",
+  "frozen": true,
+  "frozen_at": "2026-09-07",
+  "decision": "DEC-003",
+  "source_manifest": {
+    "input_csv": "ml/data/manifest_v1.csv",
+    "output_csv": "ml/data/manifest_v2.csv",
+    "generator_script": "ml/scripts/build_split.py",
+    "output_sha256": "010a820d46cb2bf43c4d922405da61003087215dc8315ceb284d08624acf31e1",
+    "output_bytes": 4273600,
+    "rows": 30224
+  },
+  "seed": 20260907,
+  "unit_of_assignment": "grupo de sha256 identico (no el archivo individual)",
+  "split_proportions_target": {"train": 0.80, "val": 0.10, "test": 0.10},
+  "quarantine": {
+    "decision": "DEC-002",
+    "sha256": "5c7c2002b0fec1f34093f672961aa13e3880fb5db0075e6a211d91f4e6ec68c7",
+    "files": [
+      "Labelled_2\\eosinophil\\EO_225902.jpg",
+      "Labelled_2\\neutrophil\\BNE_191112.jpg"
+    ],
+    "rows": 2,
+    "note": "Excluidos de train/val/test. No se eligio etiqueta automaticamente. Reversible si aparece evidencia futura."
+  },
+  "counts": {
+    "total_split_counts": {"train": 24177, "val": 3022, "test": 3023, "cuarentena": 2},
+    "class_split_counts": {
+      "Basófilos": {"train": 1793, "val": 224, "test": 224, "cuarentena": 0},
+      "Eosinófilos": {"train": 3306, "val": 413, "test": 414, "cuarentena": 1},
+      "Eritroblastos": {"train": 1649, "val": 206, "test": 206, "cuarentena": 0},
+      "Linfoblastos": {"train": 2046, "val": 256, "test": 255, "cuarentena": 0},
+      "Linfocitos": {"train": 3408, "val": 426, "test": 426, "cuarentena": 0},
+      "Mieloblastos": {"train": 2027, "val": 253, "test": 254, "cuarentena": 0},
+      "Monocitos": {"train": 2768, "val": 346, "test": 346, "cuarentena": 0},
+      "Neutrófilos": {"train": 5302, "val": 663, "test": 663, "cuarentena": 1},
+      "Plaquetas": {"train": 1878, "val": 235, "test": 235, "cuarentena": 0}
+    },
+    "source_split_counts": {
+      "Bodzas": {"train": 12783, "val": 1602, "test": 1642, "cuarentena": 0},
+      "PBC": {"train": 11394, "val": 1420, "test": 1381, "cuarentena": 2}
+    }
+  },
+  "test_usage_policy": {
+    "single_use_per_experiment": true,
+    "never_for_hyperparameter_or_threshold_selection": true,
+    "note": "El umbral de confianza y cualquier hiperparametro se calibran sobre validation (val), nunca sobre test. Ver docs/phase2-plan.md Seccion 4."
+  },
+  "no_silent_reassignment": {
+    "mechanism": "ml/scripts/build_split.py y ml/scripts/verify_split_freeze.py leen este archivo y abortan (RuntimeError) si una asignacion recalculada no produce exactamente el mismo output_sha256, en vez de sobrescribir manifest_v2.csv en silencio."
+  },
+  "known_limitations": [
+    "No hay independencia biologica de paciente/frotis/campo: no existe ese ID en ninguna copia local (docs/dataset-provenance.md, Situacion D).",
+    "Solo se agrupan duplicados EXACTOS (mismo SHA-256); recortes ligeramente distintos de la misma celula/campo no se detectan con este metodo."
+  ],
+  "not_authorized_by_this_freeze": [
+    "Inicializar DVC o un remoto de almacenamiento",
+    "Entrenar (EXP-REPRO) o cualquier otro entrenamiento",
+    "Augmentation fisica o descargas grandes",
+    "Modificar el modelo publicado",
+    "Reincorporar o re-etiquetar el grupo en cuarentena"
+  ]
+}

@@ -3,12 +3,14 @@ import csv
 import hashlib
 import random
 import json
+import io
 
 INPUT_CSV = r"D:\Proyectos\hematovision\ml\data\manifest_v1.csv"
 OUTPUT_CSV = r"D:\Proyectos\hematovision\ml\data\manifest_v2.csv"
 SEED = 20260907
 QUARANTINE_HASH = "5c7c2002b0fec1f34093f672961aa13e3880fb5db0075e6a211d91f4e6ec68c7"
 SPLITS = ("train", "val", "test")
+FREEZE_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "split_freeze.json")
 
 def read_rows(path):
     with open(path, "r", newline="", encoding="utf-8") as handle:
@@ -75,6 +77,14 @@ def file_sha256(path):
             digest.update(block)
     return digest.hexdigest()
 
+def csv_bytes(rows, fieldnames):
+    """Serialize rows exactly as csv.DictWriter writes the output manifest."""
+    buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(buffer, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+    return buffer.getvalue().encode("utf-8")
+
 def main():
     rows = read_rows(INPUT_CSV)
     fieldnames = list(rows[0].keys())
@@ -104,6 +114,19 @@ def main():
     if len(quarantine) != 2 or {row["split_propuesto"] for row in quarantine} != {"cuarentena"}:
         raise RuntimeError("cuarentena inválida")
 
+    frozen_check = "not_frozen"
+    if os.path.exists(FREEZE_FILE):
+        with open(FREEZE_FILE, "r", encoding="utf-8") as handle:
+            frozen_hash = json.load(handle)["source_manifest"]["output_sha256"]
+        recalculated_hash = hashlib.sha256(csv_bytes(rows, fieldnames)).hexdigest()
+        if recalculated_hash != frozen_hash:
+            raise RuntimeError(
+                "el split está congelado (DEC-003): esta ejecución reasignaría "
+                "imágenes congeladas silenciosamente; se abortó antes de escribir "
+                "manifest_v2.csv"
+            )
+        frozen_check = "matched"
+
     with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
@@ -126,6 +149,7 @@ def main():
         "output_bytes": os.path.getsize(OUTPUT_CSV),
         "rows": len(rows),
         "seed": SEED,
+        "frozen_check": frozen_check,
         "reproducible": reproducible,
         "crossing_hash_groups": crossing_groups,
         "quarantine_hash": QUARANTINE_HASH,

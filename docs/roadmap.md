@@ -22,7 +22,7 @@ Cierre: no queda ninguna pregunta arqueológica local por investigar con los art
 Plan detallado (propuesta, no ejecutada): [Plan de Fase 2](phase2-plan.md).
 
 - Definir dataset versionado fuera de Git.
-- Eliminar leakage y definir split reproducible.
+- Eliminar leakage y definir split reproducible. Dataset/split congelado el 2026-09-07 (DEC-003; ver [Manifiesto de originales](dataset-manifest.md)); scaffolding, DVC y entrenamiento siguen pendientes.
 - Usar paciente/lámina como unidad independiente si los datos lo permiten.
 - Considerar evaluación externa separada por fuente para las cinco clases compatibles, sin sustituir un split agrupado si se recuperan IDs.
 - Reconstruir la CNN histórica en entorno moderno y obtener un baseline confiable.
