@@ -1,6 +1,6 @@
 # Roadmap
 
-El roadmap ordena la evolución; no autoriza por sí mismo a modificar el baseline histórico. Estado actual: **Fase 0**.
+El roadmap ordena la evolución; no autoriza por sí mismo a modificar el baseline histórico. Estado actual: **Fase 0 cerrada, Fase 2 en preparación** (dataset y split congelados, DEC-003; scaffolding/DVC/entrenamiento sin autorizar).
 
 ## Fase 0 — Preservación y arqueología (CERRADA 2026-09-07)
 

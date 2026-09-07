@@ -1,7 +1,7 @@
 # Estado del proyecto
 
 **Actualizado:** 2026-09-07
-**Fase actual:** Fase 0 — preservación y arqueología, **cerrada**: evidencia local agotada para todas sus preguntas prioritarias. Comprensión técnica inicial de Fase 1 también completada. Ver [Roadmap](roadmap.md) para el detalle por ítem.
+**Fase actual:** Fase 0 — preservación y arqueología, **cerrada**: evidencia local agotada para todas sus preguntas prioritarias. Comprensión técnica inicial de Fase 1 también completada. Fase 2 — baseline reproducible, **en preparación**: dataset y split ya congelados (DEC-003, ver [Manifiesto de originales](dataset-manifest.md)); scaffolding, DVC y entrenamiento/EXP-REPRO siguen sin autorizar. Ver [Roadmap](roadmap.md) para el detalle por ítem.
 
 ## Dónde estamos
 
