@@ -94,21 +94,44 @@ Registro de preguntas y evidencia. Estados permitidos: `OPEN`, `IN PROGRESS`, `R
 
 **Impacto potencial:** medio; completa la arquitectura y relación entre los tres artefactos históricos, pero no cambia el estado de preservación (siguen siendo evidencia de solo lectura) ni el roadmap de un baseline reproducible.
 
+## HIST-ENV-005 — Búsqueda exhaustiva de entorno de entrenamiento, logs y exclusión de `ig`
+
+**Estado:** RESOLVED (evidencia local agotada; preguntas quedan PENDIENTE por ausencia de evidencia, no por falta de búsqueda)
+**Fecha:** 2026-09-07
+**Pregunta:** ¿Puede determinarse la versión de TensorFlow/CUDA/cuDNN, el uso real de GPU, un log/historial de entrenamiento, o el motivo de exclusión de `ig`, a partir de los artefactos locales? (preguntas 3, 4, 5, 6 y 13)
+
+**Contexto y evidencia revisada:** metadata completa (`metadata` raíz) y las 33 celdas de salida de `Hematologia.ipynb` (no el código); atributos HDF5 completos —raíz y descendientes— de `modelo_1.h5` y `mejor_modelo.h5`; lectura completa de los seis scripts de `Proyecto Hematología/Proyecto/utils/`; enumeración recursiva por extensión de los 156.252 archivos de `D:\Datasets\dataset_hematologia`.
+
+**Hallazgos:**
+
+- **CONFIRMADO:** el notebook solo declara `kernelspec.display_name="tf-cpu"` y `language_info.version="3.11.5"`; no hay otro campo de metadata. Ninguna de las 33 celdas de salida contiene texto sobre GPU, CUDA, cuDNN, NVIDIA, dispositivos físicos o versión de TensorFlow (0 coincidencias en una búsqueda exhaustiva case-insensitive).
+- **CONFIRMADO:** los atributos HDF5 de `modelo_1.h5` y `mejor_modelo.h5` (raíz y descendientes, incluidos `layer_names`/`weight_names`) no contienen `tensorflow_version`, CUDA, cuDNN, GPU ni ningún dato de hardware; solo `backend='tensorflow'` y `keras_version='2.10.0'`, ya conocidos.
+- **CONFIRMADO:** de 156.252 archivos en todo `D:\Datasets\dataset_hematologia`, 156.250 son imágenes y los 2 restantes son `modelo_1.h5`/`modelo_1_balanced.h5`. No existe ningún `.log`, `.json`, `.csv`, `.txt`, `.yaml/.yml` ni archivo de historial de entrenamiento en esa carpeta.
+- **CONFIRMADO:** ninguno de los seis scripts de `utils/` (`convert_images.py`, `delete_images.py`, `limit_samples_per_class.py`, `split_data.py`, `visualizar_result.py`, `__init__.py`) ni el notebook mencionan `ig`/`immature granulocytes` como motivo de exclusión, ni generan/referencian `modelo_1.h5` o `modelo_1_balanced.h5`, ni serializan el `history` de `model_1.fit(...)` a disco (`visualizar_result.py` solo grafica el objeto en memoria).
+- **CONFIRMADO:** `limit_samples_per_class.py` (límite genérico de 50 archivos/clase) y `split_data.py` (split 80/10/10 con semilla 123) son utilitarios genéricos disponibles en el repositorio histórico, pero no están conectados al pipeline final del notebook (que usa reducción a 5.950/clase y split manual 85/10/5) ni explican el término "balanced".
+- Una búsqueda adicional de palabras clave (cuda/cudnn/nvidia/gpu/tensorflow-gpu/history.json/requirements/environment.yml) en ambas raíces históricas solo produjo un falso positivo (contenido binario de imagen codificado en base64 dentro del notebook).
+
+**Conclusión:** la evidencia local disponible está agotada para estas preguntas. No es que falte buscar más: se recorrió el 100% de las salidas del notebook, el 100% de los atributos HDF5, el 100% de los scripts históricos y el 100% de los archivos del dataset por extensión, sin resultado positivo en ningún caso. Las preguntas 3 (exclusión de `ig`), 4-6 (TensorFlow/CUDA/cuDNN/GPU) y 13 (logs de entrenamiento) permanecen `PENDIENTE`, pero como PENDIENTE-evidencia-agotada: solo se resolverían con una fuente externa a este dataset y este repositorio (memoria del desarrollador, otra máquina, u otro respaldo no localizado).
+
+**Preguntas nuevas:** ninguna nueva; esto cierra el espacio de búsqueda local para estas preguntas.
+
+**Impacto potencial:** medio; permite cerrar la Fase 0 (preservación y arqueología) del roadmap con una base de evidencia explícita y completa, distinguiendo claramente "no investigado" de "investigado y sin evidencia local".
+
 ## Preguntas abiertas
 
 Todas están `OPEN` salvo que una investigación posterior indique lo contrario.
 
 1. ¿Puede recuperarse un manifiesto que mapee los crops Bodzas a paciente, frotis, campo o imagen fuente?
 2. ¿Existe una copia/release de PBC con identificadores de sujeto o adquisición, no presentes localmente?
-3. ¿Por qué se excluyó `ig` de la mezcla histórica?
-4. ¿Qué versión exacta de TensorFlow se usó para entrenamiento?
-5. ¿Qué versión histórica de CUDA/cuDNN existía?
-6. ¿Se utilizó realmente la GTX 1050 durante algún entrenamiento?
+3. ¿Por qué se excluyó `ig` de la mezcla histórica? — **EVIDENCIA LOCAL AGOTADA** ([HIST-ENV-005](#hist-env-005-búsqueda-exhaustiva-de-entorno-de-entrenamiento-logs-y-exclusión-de-ig)): ningún script ni el notebook lo explican; requeriría una fuente externa.
+4. ¿Qué versión exacta de TensorFlow se usó para entrenamiento? — **EVIDENCIA LOCAL AGOTADA** ([HIST-ENV-005](#hist-env-005-búsqueda-exhaustiva-de-entorno-de-entrenamiento-logs-y-exclusión-de-ig)): ni el notebook ni los `.h5` la registran.
+5. ¿Qué versión histórica de CUDA/cuDNN existía? — **EVIDENCIA LOCAL AGOTADA** ([HIST-ENV-005](#hist-env-005-búsqueda-exhaustiva-de-entorno-de-entrenamiento-logs-y-exclusión-de-ig)).
+6. ¿Se utilizó realmente la GTX 1050 durante algún entrenamiento? — **EVIDENCIA LOCAL AGOTADA** ([HIST-ENV-005](#hist-env-005-búsqueda-exhaustiva-de-entorno-de-entrenamiento-logs-y-exclusión-de-ig)): solo hay evidencia indirecta e insuficiente (`kernelspec` "tf-cpu").
 7. ¿Qué arquitectura y resultados correspondieron a `modelo_1.h5`? — **PARCIALMENTE RESUELTA**: arquitectura confirmada, idéntica a `mejor_modelo.h5` ([HIST-MODELS-004](#hist-models-004-reconstrucción-de-modelo_1h5-modelo_1_balancedh5-y-mejor_modeloh5)); resultados (accuracy/loss de esa corrida específica) siguen PENDIENTES por falta de logs.
 8. ¿Qué arquitectura y resultados correspondieron a `modelo_1_balanced.h5`? — **PARCIALMENTE RESUELTA**: es un re-guardado congelado, byte a byte idéntico a `modelo_1.h5` ([HIST-MODELS-004](#hist-models-004-reconstrucción-de-modelo_1h5-modelo_1_balancedh5-y-mejor_modeloh5)); su propósito funcional sigue PENDIENTE.
 9. ¿Cuánto leakage efectivo existe entre train/validation/test?
 10. ¿Podemos reconstruir relaciones original→imagen aumentada?
 11. ¿Cuál sería el rendimiento de la CNN histórica sobre un split metodológicamente correcto?
 12. ¿Qué definición semántica y protocolo serían adecuados para una futura evaluación externa de las cinco clases compartidas entre fuentes?
-13. ¿Existen logs de entrenamiento (`history.json` u equivalente) que permitan confirmar si `modelo_1.h5` y `mejor_modelo.h5` pertenecen a la misma corrida de entrenamiento?
-14. ¿Cuál era el propósito funcional de congelar `modelo_1_balanced.h5` (transfer learning, exportación, rama de entrenamiento distinta)?
+13. ¿Existen logs de entrenamiento (`history.json` u equivalente) que permitan confirmar si `modelo_1.h5` y `mejor_modelo.h5` pertenecen a la misma corrida de entrenamiento? — **EVIDENCIA LOCAL AGOTADA** ([HIST-ENV-005](#hist-env-005-búsqueda-exhaustiva-de-entorno-de-entrenamiento-logs-y-exclusión-de-ig)): censo completo de `dataset_hematologia` (156.252 archivos) no encontró ningún log/historial.
+14. ¿Cuál era el propósito funcional de congelar `modelo_1_balanced.h5` (transfer learning, exportación, rama de entrenamiento distinta)? — **EVIDENCIA LOCAL AGOTADA** ([HIST-ENV-005](#hist-env-005-búsqueda-exhaustiva-de-entorno-de-entrenamiento-logs-y-exclusión-de-ig)): ningún script lo explica ni conecta con el nombre "balanced".
