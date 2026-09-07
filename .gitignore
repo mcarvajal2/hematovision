@@ -20,6 +20,7 @@ data/raw/
 data/interim/
 artifacts/keras/
 artifacts/experiments/
+ml/data/
 
 # DVC cache is local; DVC metadata belongs in Git.
 .dvc/cache/

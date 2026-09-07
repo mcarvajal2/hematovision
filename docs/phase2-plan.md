@@ -32,6 +32,8 @@ Inspección directa de código el 2026-09-07 (no reconstruida de memoria de conv
 
 ## 2. Dataset y split
 
+**Estado de ejecución (2026-09-07):** tareas 1-4 de la Sección 7 ejecutadas y verificadas de forma independiente — inventario completo en [Manifiesto de originales](dataset-manifest.md). El manifiesto y la propuesta de split existen; **el test NO está congelado** (bloqueado por un conflicto de etiqueta sin resolver y por decisiones de proporción/semilla pendientes de aprobación — ver ese documento). Tareas 5 en adelante (scaffolding, DVC, EXP-REPRO) siguen sin autorizar.
+
 **Restricción de partida (ya confirmada, no se re-investiga):** ninguna copia local conserva ID de paciente, frotis o campo (`dataset-provenance.md`, "Situación D"). Cualquier split que afirme independencia por paciente sería inventado. Este plan no lo hace.
 
 **Punto de partida correcto — no es `Labelled_mix`.** `Labelled_mix`, tal como existe hoy en disco, ya fue contaminado por el augmentation físico histórico (contiene originales y derivados `img_...` mezclados; `dataset-provenance.md` línea 64). Reutilizarlo como fuente de "originales" heredaría el problema. El manifiesto nuevo debe construirse desde las dos carpetas **nunca aumentadas**: `Labelled` (16.027, Bodzas) y `Labelled_2` excluyendo `ig` (14.197, PBC) — 30.224 originales, replicando la unión aritmética ya documentada, sin repetir la decisión de exclusión de `ig` (que queda igual, con su motivo aún PENDIENTE-evidencia-agotada).
