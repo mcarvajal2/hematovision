@@ -1,6 +1,6 @@
 # Roadmap
 
-El roadmap ordena la evolución; no autoriza por sí mismo a modificar el baseline histórico. Estado actual: **Fase 0 cerrada, Fase 2 en preparación** (dataset y split congelados, DEC-003; scaffolding/DVC/entrenamiento sin autorizar).
+El roadmap ordena la evolución; no autoriza por sí mismo a modificar el baseline histórico. Estado actual: **Fase 0 cerrada, Fase 2 en preparación** (dataset/split congelados, DEC-003, y scaffolding implementado; DVC/entrenamiento sin autorizar).
 
 ## Fase 0 — Preservación y arqueología (CERRADA 2026-09-07)
 
@@ -22,7 +22,7 @@ Cierre: no queda ninguna pregunta arqueológica local por investigar con los art
 Plan detallado (propuesta, no ejecutada): [Plan de Fase 2](phase2-plan.md).
 
 - Definir dataset versionado fuera de Git.
-- Eliminar leakage y definir split reproducible. Dataset/split congelado el 2026-09-07 (DEC-003; ver [Manifiesto de originales](dataset-manifest.md)); scaffolding, DVC y entrenamiento siguen pendientes.
+- Eliminar leakage y definir split reproducible. Dataset/split congelado el 2026-09-07 (DEC-003; ver [Manifiesto de originales](dataset-manifest.md)); scaffolding implementado, DVC y entrenamiento siguen pendientes.
 - Usar paciente/lámina como unidad independiente si los datos lo permiten.
 - Considerar evaluación externa separada por fuente para las cinco clases compatibles, sin sustituir un split agrupado si se recuperan IDs.
 - Reconstruir la CNN histórica en entorno moderno y obtener un baseline confiable.

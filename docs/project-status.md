@@ -1,13 +1,13 @@
 # Estado del proyecto
 
 **Actualizado:** 2026-09-07
-**Fase actual:** Fase 0 — preservación y arqueología, **cerrada**: evidencia local agotada para todas sus preguntas prioritarias. Comprensión técnica inicial de Fase 1 también completada. Fase 2 — baseline reproducible, **en preparación**: dataset y split ya congelados (DEC-003, ver [Manifiesto de originales](dataset-manifest.md)); scaffolding, DVC y entrenamiento/EXP-REPRO siguen sin autorizar. Ver [Roadmap](roadmap.md) para el detalle por ítem.
+**Fase actual:** Fase 0 — preservación y arqueología, **cerrada**: evidencia local agotada para todas sus preguntas prioritarias. Comprensión técnica inicial de Fase 1 también completada. Fase 2 — baseline reproducible, **en preparación**: dataset/split congelados (DEC-003) y scaffolding de `ml/src`/`ml/tests` implementado sin entrenamiento; DVC y entrenamiento/EXP-REPRO siguen sin autorizar. Ver [Roadmap](roadmap.md) para el detalle por ítem.
 
 ## Dónde estamos
 
 - **Último hito:** el split de Fase 2 quedó congelado el 2026-09-07 (DEC-003): 80/10/10, semilla `20260907` y cuarentena DEC-002.
-- **Último trabajo:** se registró el freeze verificable del split de Fase 2 (DEC-003), manteniendo el manifiesto grande fuera de Git y sin cambiar datos, notebook ni modelo publicado.
-- **Trabajo activo:** Fase 2 no está completa: scaffolding, DVC y entrenamiento/EXP-REPRO siguen sin autorizar. Las preguntas históricas sin resolver permanecen documentadas como PENDIENTE-evidencia-agotada y solo se resolverían con una fuente externa a este repositorio y este dataset.
+- **Último trabajo:** se implementó scaffolding reproducible de Fase 2 bajo `ml/src` y `ml/tests`: lectura protegida por DEC-003, preprocesamiento y augmentation on-the-fly solo en train, reconstrucción de arquitectura y pruebas, sin entrenar ni cambiar datos o modelo publicado.
+- **Trabajo activo:** Fase 2 no está completa: DVC y entrenamiento/EXP-REPRO siguen sin autorizar. Las preguntas históricas sin resolver permanecen documentadas como PENDIENTE-evidencia-agotada y solo se resolverían con una fuente externa a este repositorio y este dataset.
 - **Hallazgo principal:** el pipeline histórico aumentó imágenes y las mezcló antes de dividir por archivo. El riesgo de leakage del pipeline es **CONFIRMADO**; leakage efectivo entre pares concretos de splits es **PROBABLE**, aún no demostrado par a par.
 - **Decisión vigente:** el notebook y modelo históricos se preservan como baseline/evidencia; las mejoras serán una evolución nueva y reproducible. Véase [DEC-001](decisions.md#dec-001-preservar-el-baseline-histórico).
 - **Hallazgo nuevo:** el notebook documenta desde `Labelled_mix` hasta evaluación, pero no la integración de fuentes, los modelos previos ni la exportación TensorFlow.js. Su metadata dice `tf-cpu`, aunque no prueba el dispositivo real de entrenamiento.
