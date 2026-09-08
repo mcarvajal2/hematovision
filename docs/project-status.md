@@ -1,13 +1,13 @@
 # Estado del proyecto
 
-**Actualizado:** 2026-09-07
-**Fase actual:** Fase 0 — preservación y arqueología, **cerrada**: evidencia local agotada para todas sus preguntas prioritarias. Comprensión técnica inicial de Fase 1 también completada. Fase 2 — baseline reproducible, **en preparación**: dataset/split congelados (DEC-003) y scaffolding de `ml/src`/`ml/tests` implementado sin entrenamiento; DVC y entrenamiento/EXP-REPRO siguen sin autorizar. Ver [Roadmap](roadmap.md) para el detalle por ítem.
+**Actualizado:** 2026-09-08
+**Fase actual:** Fase 0 — preservación y arqueología, **cerrada**: evidencia local agotada para todas sus preguntas prioritarias. Comprensión técnica inicial de Fase 1 también completada. Fase 2 — baseline reproducible, **en preparación**: dataset/split congelados (DEC-003), scaffolding de `ml/src`/`ml/tests` implementado, y remoto DVC en GCS creado y probado (`gs://hematovision-ml-dvc`, proyecto `hematovision-ml`) sin subir todavía los datasets reales; entrenamiento/EXP-REPRO siguen sin autorizar. Ver [Roadmap](roadmap.md) para el detalle por ítem.
 
 ## Dónde estamos
 
-- **Último hito:** el split de Fase 2 quedó congelado el 2026-09-07 (DEC-003): 80/10/10, semilla `20260907` y cuarentena DEC-002.
-- **Último trabajo:** se implementó scaffolding reproducible de Fase 2 bajo `ml/src` y `ml/tests`: lectura protegida por DEC-003, preprocesamiento y augmentation on-the-fly solo en train, reconstrucción de arquitectura y pruebas, sin entrenar ni cambiar datos o modelo publicado.
-- **Trabajo activo:** Fase 2 no está completa: DVC y entrenamiento/EXP-REPRO siguen sin autorizar. Las preguntas históricas sin resolver permanecen documentadas como PENDIENTE-evidencia-agotada y solo se resolverían con una fuente externa a este repositorio y este dataset.
+- **Último hito:** remoto DVC real conectado a Google Cloud Storage (2026-09-08) — proyecto GCP `hematovision-ml`, bucket `gs://hematovision-ml-dvc` (`southamerica-west1`, Standard, sin acceso público), probado end-to-end con un archivo descartable (push/pull con hash idéntico). Ver [DVC y remoto GCS](dvc-plan.md).
+- **Último trabajo:** conexión del remoto GCS — sin mover ni subir los datasets originales (~24-25 GiB), sin claves JSON, autenticación vía Application Default Credentials con la cuenta personal de Miguel.
+- **Trabajo activo:** Fase 2 no está completa: subir los datasets reales, entrenamiento/EXP-REPRO siguen sin autorizar. Las preguntas históricas sin resolver permanecen documentadas como PENDIENTE-evidencia-agotada y solo se resolverían con una fuente externa a este repositorio y este dataset.
 - **Hallazgo principal:** el pipeline histórico aumentó imágenes y las mezcló antes de dividir por archivo. El riesgo de leakage del pipeline es **CONFIRMADO**; leakage efectivo entre pares concretos de splits es **PROBABLE**, aún no demostrado par a par.
 - **Decisión vigente:** el notebook y modelo históricos se preservan como baseline/evidencia; las mejoras serán una evolución nueva y reproducible. Véase [DEC-001](decisions.md#dec-001-preservar-el-baseline-histórico).
 - **Hallazgo nuevo:** el notebook documenta desde `Labelled_mix` hasta evaluación, pero no la integración de fuentes, los modelos previos ni la exportación TensorFlow.js. Su metadata dice `tf-cpu`, aunque no prueba el dispositivo real de entrenamiento.
@@ -35,4 +35,4 @@ La arqueología local está cerrada. Los próximos pasos requieren una decisión
 
 1. Si se quiere seguir la pista de manifiestos externos (releases originales de Bodzas/PBC con IDs de paciente/sujeto), es una búsqueda fuera de este repositorio y estos discos — decidir si vale la pena antes de invertir tiempo.
 2. Si se autoriza resolver el bloqueo de "dubious ownership" en `D:\Proyectos\Proyecto Hematología` (cambiar configuración Git), podría recuperarse historial adicional — no se hizo sin autorización explícita.
-3. Fase 2 (baseline reproducible) ya está en marcha: dataset y split congelados (DEC-003), scaffolding de `ml/src`/`ml/tests` implementado, y DVC preparado localmente con GCS como remoto objetivo (sin bucket creado todavía) -- ver [Plan de Fase 2](phase2-plan.md). No se inició ningún entrenamiento.
+3. Fase 2 (baseline reproducible) ya está en marcha: dataset y split congelados (DEC-003), scaffolding de `ml/src`/`ml/tests` implementado, y remoto DVC en GCS creado y probado (sin subir los datasets reales todavía) -- ver [Plan de Fase 2](phase2-plan.md) y [DVC y remoto GCS](dvc-plan.md). No se inició ningún entrenamiento.

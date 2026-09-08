@@ -1,17 +1,16 @@
 # DVC y remoto GCS — plan y estado
 
-**Estado:** DVC inicializado localmente (2026-09-08). **Google Cloud Storage (GCS) es el remoto objetivo elegido por Miguel**, pero **todavía no existe ningún bucket, proyecto, service account ni credencial** — nada de eso está autorizado en esta ronda. Este documento separa lo ya hecho (local, sin red) de lo propuesto (requiere autorización separada antes de ejecutarse), siguiendo la misma disciplina de [Plan de Fase 2](phase2-plan.md) y [Manifiesto de originales](dataset-manifest.md).
+**Estado (2026-09-08):** DVC inicializado localmente, **remoto GCS real creado y conectado** (`gcs` → `gs://hematovision-ml-dvc/dvc-store`), probado end-to-end con un archivo pequeño descartable. **Los datasets originales (~24-25 GiB) todavía NO están versionados ni subidos** — nada de eso se ejecutó en esta ronda. Este documento separa lo ya hecho (verificado) de lo propuesto (requiere autorización separada antes de ejecutarse), siguiendo la misma disciplina de [Plan de Fase 2](phase2-plan.md) y [Manifiesto de originales](dataset-manifest.md).
 
-## 1. Qué ya existe (local, verificado)
+## 1. Qué ya existe (verificado)
 
-- DVC instalado como dependencia de desarrollo de `ml/` (`dvc[gs]` en `ml/pyproject.toml`, resuelto por `uv`), con soporte de Google Cloud Storage disponible (`gcsfs`), sin necesitar instalar nada aparte cuando llegue el momento de conectar el remoto real.
-- `dvc init` ejecutado en la raíz del repositorio Git (`D:\Proyectos\hematovision\.dvc\`, **no** dentro de `ml/`) — es la ubicación correcta porque DVC versiona datos a nivel de todo el repositorio, no por subproyecto.
-- `core.analytics = false` en `.dvc/config`: se deshabilitó la telemetría anónima de DVC para no enviar nada fuera de esta máquina mientras el proyecto siga siendo local.
-- **Ningún remoto configurado.** `dvc remote list` está vacío a propósito.
-- Probado con un archivo descartable (`dvc add` / `dvc status` / `dvc checkout`) para confirmar que el mecanismo de cacheo y restauración funciona antes de aplicarlo a datos reales; el archivo de prueba y todo rastro suyo se eliminaron al terminar.
+- DVC 3.67.1 (`dvc[gs]` en `ml/pyproject.toml`, resuelto por `uv`), inicializado en la raíz del repositorio (`D:\Proyectos\hematovision\.dvc\`).
+- **Proyecto GCP dedicado:** `hematovision-ml` (número `806949743302`), creado explícitamente para este proyecto — no se reutilizó ningún proyecto personal existente de Miguel. Billing vinculado a su cuenta de facturación abierta (`0110F9-9DA6AB-628D75`).
+- **Bucket GCS creado:** `gs://hematovision-ml-dvc`, región `SOUTHAMERICA-WEST1`, clase `STANDARD`, `public_access_prevention: enforced`, `uniform_bucket_level_access: true`. Verificado con `gcloud storage buckets describe` tras crearlo.
+- **Remoto DVC conectado:** `gcs` → `gs://hematovision-ml-dvc/dvc-store`, configurado como remoto por defecto. Solo la URL quedó en `.dvc/config` (versionado en Git); ninguna credencial.
+- **Autenticación:** Application Default Credentials (`gcloud auth application-default login`), con la cuenta personal de Miguel (`m.angel9106@gmail.com`, deliberadamente distinta de su cuenta de trabajo de Cero). Sin ninguna clave JSON de service account creada. Las credenciales viven en `%APPDATA%\gcloud\application_default_credentials.json`, fuera del repositorio.
+- **Prueba end-to-end real, exitosa:** archivo descartable de 55 bytes → `dvc add` → `dvc push` (confirmado en el bucket vía `gcloud storage ls`) → borrado local → `dvc pull` → contenido restaurado con **SHA-256 idéntico**. El archivo, su `.dvc`, la entrada de `.gitignore` y el objeto en el bucket se eliminaron después — el bucket quedó vacío (`gcloud storage ls -r` no devuelve objetos).
 - El split congelado (`ml/data/manifest_v2.csv`, DEC-003, SHA-256 `010a820d…acf31e1`) permaneció intacto durante todo el proceso.
-
-Detalle técnico completo (versión exacta de DVC, salida de `dvc doctor`, verificación independiente) en el commit correspondiente y en el reporte de revisión de este trabajo.
 
 ## 2. Estrategia de datos (qué se versionará con DVC y cómo)
 
@@ -19,9 +18,9 @@ Tres categorías de datos, con estrategias distintas porque su relación con el 
 
 ### 2.1 Manifiestos (`ml/data/manifest_v1.csv`, `manifest_v2.csv`)
 
-**Estado:** ya viven dentro del árbol del repositorio (`ml/data/`), ~4 MiB cada uno, ya excluidos de Git vía `.gitignore`. Son el caso más simple: `dvc add ml/data/manifest_v1.csv` y `dvc add ml/data/manifest_v2.csv` los traería bajo control de DVC sin mover ni copiar nada fuera de su ubicación actual.
+**Estado:** ya viven dentro del árbol del repositorio (`ml/data/`), ~4 MiB cada uno, ya excluidos de Git vía `.gitignore`. Son el caso más simple: `dvc add ml/data/manifest_v1.csv` y `dvc add ml/data/manifest_v2.csv` los traería bajo control de DVC sin mover ni copiar nada fuera de su ubicación actual — y ahora ya existe un remoto real para poder hacerles `dvc push`.
 
-**Limitación encontrada (verificada en esta ronda, no solo teórica):** DVC **rechaza** crear un puntero `.dvc` dentro de una carpeta que ya está completamente ignorada por Git — lo comprobamos directamente al intentar una prueba de humo en `ml/data/`. Para trackear los manifiestos con DVC, `.gitignore` tiene que dejar de ignorar `ml/data/` como bloque entero; en su lugar, cada archivo real (`manifest_v1.csv`, `manifest_v2.csv`) queda ignorado individualmente por el `.gitignore` que el propio DVC genera al lado de cada `.dvc`, mientras los punteros `.dvc` sí se versionan en Git. Es un cambio mecánico y de bajo riesgo, pero es un cambio real de `.gitignore` que no se aplicó en esta ronda (no estaba pedido) — queda propuesto para cuando se autorice trackear los manifiestos.
+**Limitación encontrada (verificada, no solo teórica):** DVC **rechaza** crear un puntero `.dvc` dentro de una carpeta que ya está completamente ignorada por Git — lo comprobamos directamente al intentar la primera prueba de humo en `ml/data/`. Para trackear los manifiestos con DVC, `.gitignore` tiene que dejar de ignorar `ml/data/` como bloque entero; en su lugar, cada archivo real queda ignorado individualmente por el `.gitignore` que el propio DVC genera al lado de cada `.dvc`. Es un cambio mecánico y de bajo riesgo, pero no se aplicó en esta ronda (no estaba pedido) — queda propuesto para cuando se autorice trackear los manifiestos.
 
 **Plan (no ejecutado):**
 ```
@@ -29,81 +28,81 @@ Tres categorías de datos, con estrategias distintas porque su relación con el 
 dvc add ml/data/manifest_v1.csv
 dvc add ml/data/manifest_v2.csv
 git add ml/data/manifest_v1.csv.dvc ml/data/manifest_v2.csv.dvc ml/data/.gitignore .gitignore
+dvc push
 ```
-Esto no mueve ni duplica nada: los archivos ya están donde tienen que estar.
 
 ### 2.2 Datasets originales (Bodzas `Labelled`, ~24 GiB; PBC `Labelled_2`, ~268 MiB)
 
-**Este es el punto que requiere una decisión explícita antes de tocarse — no se ejecutó nada aquí.**
+**Este es el punto que requiere una decisión explícita antes de tocarse — no se ejecutó nada aquí, y sigue sin autorizarse.**
 
-**El problema de fondo:** hoy viven fuera del repositorio, en `D:\Datasets\dataset_hematologia\`. DVC necesita que el archivo o carpeta que se trackea esté **dentro** del árbol del repositorio para que el flujo estándar `git clone` + `dvc pull` funcione en otra máquina — el puntero `.dvc` que se commitea a Git describe una ruta relativa al repo, y `dvc pull` reconstruye el contenido exactamente en esa ruta relativa. Un dataset fuera del repo, referenciado por una ruta absoluta de esta máquina (`D:\Datasets\...`), no es portable: esa ruta no existe en otra computadora, y DVC no tiene forma de "recrearla" ahí.
+**El problema de fondo:** hoy viven fuera del repositorio, en `D:\Datasets\dataset_hematologia\`. DVC necesita que el archivo o carpeta que se trackea esté **dentro** del árbol del repositorio para que el flujo estándar `git clone` + `dvc pull` funcione en otra máquina.
 
-**Alternativas evaluadas:**
+**Alternativas evaluadas** (sin cambios respecto a la ronda anterior):
 
-1. **Mover los datasets dentro del repo** (ej. `ml/data/raw/Labelled`, `ml/data/raw/Labelled_2`), después `dvc add`. Es el camino estándar y el único que garantiza portabilidad total (`git clone` + `uv sync` + `dvc pull` reproduce todo en una máquina nueva). Como el repo (`D:\Proyectos\`) y los datasets (`D:\Datasets\`) están en el **mismo volumen NTFS (`D:`)**, mover ~24 GiB es una operación de sistema de archivos casi instantánea (rename a nivel de volumen, no una copia física de bytes) — no duplica el espacio en disco. El costo real no es el movimiento en sí, sino que `dvc add` tiene que **leer y hashear las ~30.224 imágenes una vez** para construir el cache de DVC (I/O de lectura, no de red) — comparable en magnitud al trabajo que ya hizo `build_manifest.py` al construir el manifiesto original.
-2. **Symlink/junction desde dentro del repo hacia la ubicación externa**, sin mover nada. Se descarta como estrategia principal: no resuelve el problema de portabilidad (en una máquina nueva no existiría `D:\Datasets\...` para apuntar), y la integración de DVC con symlinks como "add target" es más frágil/menos probada que el flujo estándar.
-3. **DVC "external outputs"** (trackear una ruta fuera del repo directamente). Existe como función de DVC, pero está pensada para casos donde los datos *tienen* que quedarse fuera del árbol del proyecto (ej. un dataset compartido entre varios repos); complica el `dvc pull`/`dvc checkout` en otra máquina de la misma forma que el symlink, y no es el camino recomendado hoy por la documentación de DVC para este caso de uso.
+1. **Mover los datasets dentro del repo** (ej. `ml/data/raw/Labelled`, `ml/data/raw/Labelled_2`), después `dvc add` + `dvc push` al remoto ya existente. Es el camino recomendado: mismo volumen NTFS (`D:`), el movimiento no duplica espacio; el costo real es que `dvc add` tiene que leer y hashear las ~30.224 imágenes una vez.
+2. **Symlink** hacia la ubicación externa: descartado, no resuelve portabilidad.
+3. **DVC "external outputs"**: descartado, mismo problema de portabilidad, no es el camino recomendado por DVC para este caso.
 
-**Recomendación:** opción 1 (mover dentro del repo, mismo volumen, sin duplicar espacio), **pero no se ejecuta en esta ronda** porque el usuario pidió explícitamente no mover ni copiar los datasets originales todavía. Antes de hacerlo, hay que decidir junto con Miguel: la carpeta destino exacta (`ml/data/raw/` es la propuesta), y confirmar que ningún otro proceso/notebook depende de la ruta actual `D:\Datasets\dataset_hematologia\` (los scripts nuevos de `ml/scripts/` y `ml/src/` sí dependen de ella hoy — habría que actualizarlos como parte del mismo cambio, no por separado).
+**Recomendación sin cambios:** opción 1, **pendiente de autorización separada**. Antes de ejecutarla: decidir la carpeta destino exacta y actualizar las rutas que hoy dependen de `D:\Datasets\dataset_hematologia\` en `ml/scripts/` y `ml/src/`.
 
 ### 2.3 Artefactos de experimentos futuros (`artifacts/experiments/`)
 
-Todavía no existe (no hay ningún `EXP-NNN` ejecutado). Cuando exista, cada carpeta de experimento (checkpoints, `history.json`, configuración) se trackeará con DVC igual que los manifiestos — vive naturalmente dentro del repo, sin el problema de portabilidad de los datasets externos.
+Todavía no existe (no hay ningún `EXP-NNN` ejecutado). Cuando exista, cada carpeta de experimento se trackeará con DVC igual que los manifiestos, con `dvc push` al remoto `gcs` ya conectado.
 
-## 3. Diseño de configuración GCS (propuesto, nada de esto está aplicado)
+## 3. Configuración GCS aplicada
 
-| Parámetro | Propuesta | Razón |
+| Parámetro | Valor aplicado | Razón |
 | --- | --- | --- |
-| **Región del bucket** | `southamerica-west1` (Santiago, Chile) | Miguel opera desde Chile; es la única región de GCS físicamente en el país — menor latencia para `dvc push`/`dvc pull` interactivos desde su máquina de desarrollo. Alternativa si `southamerica-west1` tuviera alguna limitación de servicio/precio relevante: `southamerica-east1` (São Paulo) como segunda opción regional. |
-| **Clase de almacenamiento inicial** | `Standard` | Se anticipa acceso frecuente durante desarrollo activo (`dvc pull` en cada máquina nueva, iteración de experimentos). Nearline/Coldline penalizan con costos de recuperación y duración mínima de almacenamiento — no convienen todavía. Podría reevaluarse a futuro *solo* para los datasets originales una vez que se consideren estables/inmutables. |
-| **Nombre lógico del bucket** | algo como `hematovision-dvc` o `<identificador-de-miguel>-hematovision-dvc` | Los nombres de bucket de GCS son **únicos globalmente** (no solo dentro del proyecto de GCP) — el nombre final depende de disponibilidad al momento de crearlo; esto es solo una propuesta de convención, a confirmar cuando se autorice la creación. |
-| **Remote name en DVC** | `gcs` | Alias simple y explícito (`dvc remote add gcs gs://<bucket>/dvc-store`, comando exacto en la Sección 5 — no ejecutado). |
+| **Proyecto GCP** | `hematovision-ml` | Dedicado, creado desde cero — no reutiliza ningún proyecto personal de Miguel (`desafio1`, `desafio2`, `fir-init-f898f`, `inmunovida-v4`, `prueba1` quedaron sin tocar). |
+| **Región del bucket** | `southamerica-west1` (Santiago, Chile) | Miguel opera desde Chile; es la única región de GCS físicamente en el país — menor latencia para `dvc push`/`dvc pull` interactivos. |
+| **Clase de almacenamiento** | `STANDARD` | Se anticipa acceso frecuente durante desarrollo activo. |
+| **Nombre del bucket** | `hematovision-ml-dvc` | Único globalmente (confirmado al crearlo), asociado claramente al proyecto. |
+| **Acceso** | `public_access_prevention: enforced`, `uniform_bucket_level_access: true` | Sin acceso público bajo ninguna circunstancia, IAM uniforme en vez de ACLs por objeto (recomendación vigente de GCS). |
+| **Remote name en DVC** | `gcs` | `gs://hematovision-ml-dvc/dvc-store`, configurado como remoto por defecto (`dvc remote add -d`). |
 
-## 4. Autenticación (recomendada, no configurada)
+## 4. Autenticación aplicada
 
-**Desarrollo local (Miguel, esta máquina y futuras máquinas de desarrollo):** [Application Default Credentials (ADC)](https://cloud.google.com/docs/authentication/application-default-credentials) vía `gcloud auth application-default login`. Es el mecanismo que Google y DVC recomiendan hoy para desarrollo interactivo — autentica con la identidad de Google del propio Miguel, sin generar ningún archivo de clave JSON de larga duración. Las credenciales quedan cacheadas fuera del repositorio (en el perfil del usuario del sistema operativo, no en `D:\Proyectos\hematovision`), así que nunca llegan a Git aunque se cometiera un error de `.gitignore`.
+**Desarrollo local (esta máquina):** Application Default Credentials, vía `gcloud auth application-default login` con la cuenta personal `m.angel9106@gmail.com`. Sin clave JSON de service account. Las credenciales quedan en el perfil de usuario de Windows (`%APPDATA%\gcloud\`), nunca en el repositorio — verificado explícitamente.
 
-**Futuras VMs de entrenamiento o CI/CD:** evitar también ahí una clave JSON estática:
-- **VM de Compute Engine:** usar la cuenta de servicio *adjunta* a la VM (autenticación vía metadata server) — no requiere ninguna clave descargada.
-- **CI/CD (ej. GitHub Actions):** **Workload Identity Federation (WIF)**, que intercambia un token OIDC de GitHub Actions por credenciales temporales de GCP, sin ninguna clave de larga duración almacenada como secreto.
+**Futuras VMs de entrenamiento o CI/CD** (sin cambios, todavía no aplica):
+- **VM de Compute Engine:** cuenta de servicio *adjunta* a la VM (metadata server), sin clave descargada.
+- **CI/CD (ej. GitHub Actions):** Workload Identity Federation, sin clave de larga duración.
 
-**Qué se versiona en Git y qué no:**
-- **En `.dvc/config` (versionado):** el nombre del remoto y su URL `gs://bucket/ruta` una vez creado — es solo topología, no un secreto.
-- **Nunca en Git:** cualquier archivo de clave JSON (evitado por diseño con ADC/WIF), `.dvc/config.local` (DVC ya lo ignora automáticamente por defecto), la caché de credenciales de `gcloud` (vive en el perfil del usuario, fuera del repo), y cualquier variable de entorno `GOOGLE_APPLICATION_CREDENTIALS`.
+**Qué quedó versionado en Git y qué no:**
+- **En `.dvc/config` (versionado):** solo `remote = gcs` y `url = gs://hematovision-ml-dvc/dvc-store` — topología, no un secreto.
+- **Nunca en Git:** ninguna clave JSON (no se generó ninguna), `.dvc/config.local` (no existe), la caché ADC de `gcloud` (fuera del repo), ninguna variable `GOOGLE_APPLICATION_CREDENTIALS`.
 
-## 5. Comandos que Miguel deberá ejecutar cuando autorice el siguiente paso (ninguno ejecutado todavía)
+## 5. Prueba pequeña — resultado
 
-```powershell
-# 1. Crear el proyecto de GCP (si no existe uno ya elegido) y habilitar billing — decisión de Miguel, fuera de DVC
-gcloud projects create <project-id>
+| Paso | Resultado |
+| --- | --- |
+| `dvc add` de un archivo descartable (55 bytes) | Puntero `.dvc` generado correctamente (md5 `f7145c1c…`) |
+| `dvc push` | `1 file pushed`; confirmado en `gs://hematovision-ml-dvc/dvc-store/files/md5/f7/…` vía `gcloud storage ls` |
+| Borrado de la copia local | Confirmado ausente |
+| `dvc pull` | `1 file added`; contenido restaurado |
+| Verificación de integridad | SHA-256 idéntico antes y después (`6a9d2db7…`) |
+| Limpieza | Archivo local, `.dvc`, entrada de `.gitignore`, objeto en el bucket y entrada de caché local — todos eliminados. Bucket confirmado vacío tras la limpieza. |
 
-# 2. Crear el bucket en la región y clase elegidas
-gcloud storage buckets create gs://<nombre-bucket-elegido> `
-  --project=<project-id> `
-  --location=southamerica-west1 `
-  --default-storage-class=STANDARD `
-  --uniform-bucket-level-access
+## 6. Estimación de costo (Standard, ~24-25 GiB) — supuestos explícitos, no un compromiso de precio
 
-# 3. Autenticación local recomendada (sin clave JSON)
-gcloud auth application-default login
+**No se afirma un costo exacto** — los precios de GCP cambian y deben confirmarse en la [calculadora oficial](https://cloud.google.com/products/calculator) antes de comprometerse. Estimación aproximada basada en tarifas históricas típicas de almacenamiento Standard en regiones sudamericanas (del orden de US$0,023–0,026 por GiB/mes):
 
-# 4. Conectar el remoto en DVC (recién acá se toca .dvc/config)
-cd D:\Proyectos\hematovision
-ml\.venv\Scripts\uv.exe run --project ml dvc remote add -d gcs gs://<nombre-bucket-elegido>/dvc-store
-git add .dvc/config
-git commit -m "chore(dvc): conectar remoto GCS"
+- **Almacenamiento:** ~25 GiB × ~US$0,025/GiB/mes ≈ **US$0,60–0,65/mes** — un costo bajo dado el tamaño actual del dataset.
+- **Operaciones:** `dvc push`/`dvc pull` de ~30.000 archivos implica del orden de 3-4 lotes de 10.000 operaciones — de órdenes de centavos de dólar por corrida completa (las tarifas de operaciones Clase A/B son mucho más bajas que el almacenamiento).
+- **Egress (salida de red):** el costo más variable. Si un futuro entrenamiento corre en una VM de GCP en la misma región, el tráfico puede ser gratuito o muy barato (dentro de la nube de Google). Si se hace `dvc pull` hacia esta máquina de desarrollo (fuera de GCP, por internet), aplica la tarifa estándar de egress a internet — más cara que el almacenamiento, típicamente varios centavos de dólar por GiB, por lo que una descarga completa del dataset podría costar el equivalente a varios meses de almacenamiento en una sola corrida. Pulls repetidos desde múltiples máquinas de desarrollo suman.
+- **No se activó ningún servicio adicional** más allá de Cloud Storage (Storage API) — las demás APIs que GCP habilita por defecto en un proyecto nuevo (BigQuery, Datastore, etc.) no generan costo por sí solas mientras no se usen.
 
-# 5. Recién ahí, subir lo que ya esté trackeado con DVC (manifiestos, y más adelante datasets)
-ml\.venv\Scripts\uv.exe run --project ml dvc push
-```
+**Recomendación:** antes de subir el dataset completo, confirmar el precio vigente exacto en la calculadora oficial y decidir con Miguel si el patrón de uso esperado (cuántas veces se espera hacer `pull` completo, desde dónde) cambia la estimación de egress.
 
-## 6. Seguridad — verificado en esta ronda
+## 7. Seguridad — verificado en esta ronda
 
-- Ninguna credencial de ningún tipo existe en el repositorio ni en `.dvc/`.
-- Ningún remoto real configurado (`dvc remote list` vacío).
-- `.gitignore` sigue coherente: `.dvc/cache/` ya estaba anticipado antes de inicializar DVC; el propio `.dvc/.gitignore` que DVC generó ignora además `config.local` y `tmp` — configuración local y compartida quedan separadas por diseño de DVC, no por convención manual.
-- No hubo ninguna transferencia de red: sin remoto, `dvc push`/`dvc pull` no tienen a dónde apuntar.
+- Bucket sin acceso público (`public_access_prevention: enforced`), confirmado con `gcloud storage buckets describe`.
+- Ninguna credencial en Git — búsqueda activa de patrones (`private_key`, `client_email`, `service_account`, variables `GOOGLE_APPLICATION_CREDENTIALS`) sobre todo el repositorio, sin resultados.
+- Ninguna clave JSON de service account generada en ningún momento.
+- `.dvc/config` solo contiene la URL del remoto, sin secretos.
+- `.dvc/config.local` no existe (no hizo falta).
+- `.gitignore` volvió a su estado original tras la limpieza de la prueba — sin residuos.
 
-## 7. Qué NO autoriza este documento
+## 8. Qué sigue sin autorizar
 
-Crear el proyecto/bucket de GCP, configurar billing, generar cualquier credencial, ejecutar `dvc remote add` con una URL real, ejecutar `dvc push`, mover o copiar los datasets originales, y entrenar o ejecutar EXP-REPRO — cada uno sigue requiriendo su propia autorización explícita y separada, igual que en las rondas anteriores de Fase 2.
+Mover o copiar los datasets originales (Bodzas/PBC), trackear o subir los ~24-25 GiB completos, ejecutar el primer `dvc push` de datos reales, entrenar, ejecutar EXP-REPRO, y modificar el modelo publicado — cada uno sigue requiriendo su propia autorización explícita y separada.
