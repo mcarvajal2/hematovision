@@ -4,8 +4,10 @@ from pathlib import Path
 
 import tensorflow as tf
 
+from .paths import dataset_root as configured_dataset_root
+from .paths import resolve_image_path
+
 IMAGE_SIZE = 150
-DATASET_ROOT = Path(r"D:\Datasets\dataset_hematologia")
 
 
 def preprocess_image(image: tf.Tensor) -> tf.Tensor:
@@ -14,9 +16,11 @@ def preprocess_image(image: tf.Tensor) -> tf.Tensor:
     return tf.cast(image, tf.float32) / 255.0
 
 
-def load_and_preprocess_image(path: str | Path, dataset_root: Path | str = DATASET_ROOT) -> tf.Tensor:
+def load_and_preprocess_image(
+    path: str | Path, dataset_root: Path | str | None = None
+) -> tf.Tensor:
     """Read one manifest-relative image path without any random transform."""
-    full_path = Path(dataset_root) / Path(path)
+    full_path = resolve_image_path(str(path), configured_dataset_root(dataset_root))
     image = tf.io.decode_image(tf.io.read_file(str(full_path)), channels=3, expand_animations=False)
     image.set_shape((None, None, 3))
     return preprocess_image(image)

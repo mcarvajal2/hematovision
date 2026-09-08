@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 
 from hematovision_ml.augmentation import apply_augmentation, build_augmentation_pipeline
@@ -31,8 +33,9 @@ def test_disabled_augmentation_and_preprocessing_are_deterministic():
     config.augmentation_config["enabled"] = False
     assert build_augmentation_pipeline(config.augmentation_config) is None
     path = get_train_paths()[0]
-    first = load_and_preprocess_image(path).numpy()
-    second = load_and_preprocess_image(path).numpy()
+    dataset_root = Path(r"D:\Datasets\dataset_hematologia")
+    first = load_and_preprocess_image(path, dataset_root=dataset_root).numpy()
+    second = load_and_preprocess_image(path, dataset_root=dataset_root).numpy()
     assert first.shape == (150, 150, 3)
     assert np.array_equal(first, second)
     set_global_seed(42)

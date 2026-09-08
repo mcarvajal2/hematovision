@@ -4,6 +4,7 @@ import csv
 from pathlib import Path
 
 from .freeze import DEFAULT_FREEZE_PATH, DEFAULT_MANIFEST_PATH, verify_frozen_manifest
+from .paths import resolve_image_path
 
 
 def _validated_rows(manifest_path: Path | str, freeze_path: Path | str) -> list[dict[str, str]]:
@@ -50,3 +51,30 @@ def get_test_paths(
     if not allow_test_access:
         raise PermissionError("test access requires allow_test_access=True")
     return _paths_for_split("test", manifest_path, freeze_path)
+
+
+def get_train_image_paths(
+    dataset_root: Path | str | None = None, **kwargs: Path | str
+) -> tuple[Path, ...]:
+    """Return frozen train paths resolved below the configured dataset root."""
+    return tuple(resolve_image_path(path, dataset_root) for path in get_train_paths(**kwargs))
+
+
+def get_val_image_paths(
+    dataset_root: Path | str | None = None, **kwargs: Path | str
+) -> tuple[Path, ...]:
+    """Return frozen validation paths resolved below the configured dataset root."""
+    return tuple(resolve_image_path(path, dataset_root) for path in get_val_paths(**kwargs))
+
+
+def get_test_image_paths(
+    *,
+    allow_test_access: bool = False,
+    dataset_root: Path | str | None = None,
+    **kwargs: Path | str,
+) -> tuple[Path, ...]:
+    """Return resolved test paths only after the existing explicit opt-in."""
+    return tuple(
+        resolve_image_path(path, dataset_root)
+        for path in get_test_paths(allow_test_access=allow_test_access, **kwargs)
+    )

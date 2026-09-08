@@ -44,13 +44,19 @@ dvc push
 # NO EJECUTADO — requiere autorización separada y aplica a los datos reales
 cd D:\Proyectos\hematovision
 ml\.venv\Scripts\uv.exe run --project ml dvc add --to-remote -r gcs `
-  -o ml/data/raw/bodzas D:\Datasets\dataset_hematologia\Labelled
+  -o ml/data/raw/Labelled D:\Datasets\dataset_hematologia\Labelled
 ml\.venv\Scripts\uv.exe run --project ml dvc add --to-remote -r gcs `
-  -o ml/data/raw/pbc D:\Datasets\dataset_hematologia\Labelled_2
-git add ml/data/raw/bodzas.dvc ml/data/raw/pbc.dvc ml/data/.gitignore .gitignore
+  -o ml/data/raw/Labelled_2 D:\Datasets\dataset_hematologia\Labelled_2
+git add ml/data/raw/Labelled.dvc ml/data/raw/Labelled_2.dvc ml/data/.gitignore .gitignore
 ```
 
-Esto genera `ml/data/raw/bodzas.dvc` y `ml/data/raw/pbc.dvc` (versionables en Git) apuntando a datos que **ya están en GCS**, mientras `D:\Datasets\dataset_hematologia\` sigue exactamente como está hoy, sin tocarse. En una máquina nueva, `git clone` + `dvc pull` materializa el contenido en `ml/data/raw/bodzas/` y `ml/data/raw/pbc/` — sin que esa máquina necesite conocer `D:\Datasets\...` en absoluto.
+Esto genera `ml/data/raw/Labelled.dvc` y `ml/data/raw/Labelled_2.dvc` (versionables en Git) apuntando a datos que **ya están en GCS**, mientras `D:\Datasets\dataset_hematologia\` sigue exactamente como está hoy, sin tocarse. En una máquina nueva, `git clone` + `dvc pull` materializa el contenido en `ml/data/raw/Labelled/` y `ml/data/raw/Labelled_2/` — sin que esa máquina necesite conocer `D:\Datasets\...` en absoluto. El layout final será:
+
+```
+ml/data/raw/
+  Labelled/
+  Labelled_2/
+```
 
 **Costo real de esta operación (no ejecutada, para dimensionar antes de autorizar):** DVC igual necesita **leer y hashear las ~30.224 imágenes una vez** (para calcular el hash de contenido) y **subir ~24-25 GiB por red** a GCS — el ahorro de `--to-remote` es no duplicar esos GiB en el disco local, no evitar la lectura/hash ni la subida.
 
@@ -66,50 +72,47 @@ Todavía no existe (no hay ningún `EXP-NNN` ejecutado). Cuando exista, cada car
 
 **El problema real y no obvio:** ese separador `\` es un **carácter literal dentro del string del CSV**, no una decisión del sistema operativo que lo lea. En Windows, `pathlib.Path("Labelled\\Basophile\\0.png")` lo interpreta correctamente como 3 componentes. **En Linux/GCP, `pathlib.PurePosixPath` trata la barra invertida como un carácter normal del nombre de archivo, no como separador** — un `Path(row["path_original"])` ingenuo se rompe silenciosamente fuera de Windows. Esto hay que resolverlo explícitamente, no asumir que "usar `pathlib`" alcanza.
 
-**Diseño propuesto (no implementado — cambio de código pendiente, ver Sección 8), estructural y no basado en reemplazo de strings frágil:**
+**Diseño implementado y testeado:** `ml/src/hematovision_ml/paths.py` resuelve cada string
+de `path_original` de forma estructural, sin tabla de traducción por fuente ni reemplazos
+frágiles. El primer componente ya es `Labelled` o `Labelled_2`, por lo que basta unirlo
+directamente a la raíz de dataset configurable.
 
 ```python
-# ml/src/hematovision_ml/paths.py (propuesto, no aplicado)
-"""Resuelve path_original del manifiesto congelado contra una raíz configurable.
-
-manifest_v2.csv nunca cambia (DEC-003). Este módulo traduce sus rutas
-históricas (relativas a D:\\Datasets\\dataset_hematologia, con "\\" literal
-grabado en el CSV) hacia la raíz de datos vigente en la máquina actual.
-"""
 import os
 from pathlib import Path
 
 DATASET_ROOT_ENV_VAR = "HEMATOVISION_DATASET_ROOT"
-DEFAULT_DATASET_ROOT = Path(r"D:\Datasets\dataset_hematologia")  # default histórico, esta máquina
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_DATASET_ROOT = PROJECT_ROOT / "ml" / "data" / "raw"
 
-# Clave estructural: la columna "fuente" del manifiesto (ya verificada, no inferida)
-# determina el prefijo histórico exacto y el nombre de carpeta portable nuevo.
-_FUENTE_LAYOUT = {
-    "Bodzas": {"historic_prefix": "Labelled", "portable_dir": "bodzas"},
-    "PBC": {"historic_prefix": "Labelled_2", "portable_dir": "pbc"},
-}
-
-def dataset_root() -> Path:
+def dataset_root(explicit: Path | str | None = None) -> Path:
+    if explicit is not None:
+        return Path(explicit)
     override = os.environ.get(DATASET_ROOT_ENV_VAR)
     return Path(override) if override else DEFAULT_DATASET_ROOT
 
-def resolve_image_path(row: dict, root: Path | None = None) -> Path:
-    layout = _FUENTE_LAYOUT[row["fuente"]]
-    # split explícito por "\" literal: NO usar Path(path_original) directo,
-    # porque en Linux "\" no separa componentes.
-    parts = row["path_original"].split("\\")
-    if parts[0] != layout["historic_prefix"]:
-        raise ValueError(f"path_original inesperado para fuente={row['fuente']!r}: {row['path_original']!r}")
-    return (root or dataset_root()).joinpath(layout["portable_dir"], *parts[1:])
+def resolve_image_path(path_original: str, dataset_root_override: Path | str | None = None) -> Path:
+    root = dataset_root(dataset_root_override).resolve()
+    parts = [part for part in path_original.split("\\") if part not in ("", ".")]
+    if not parts or ".." in parts:
+        raise ValueError(f"invalid path_original: {path_original!r}")
+    resolved = root.joinpath(*parts).resolve()
+    if not resolved.is_relative_to(root):
+        raise ValueError(f"path_original escapes dataset root: {path_original!r}")
+    return resolved
 ```
 
-**Por qué esta forma y no un reemplazo de strings:** el mapeo `fuente → prefijo histórico/carpeta portable` es una tabla fija de 2 entradas derivada de cómo `build_manifest.py` construyó el CSV (verificado, no adivinado) — no una heurística que intente adivinar patrones. `fuente` ya es una columna auditada y congelada; usarla como llave es más robusto que inferir el origen desde el propio `path_original`.
+El split explícito sobre `"\\"` evita depender de la semántica de `pathlib` del sistema
+operativo. `paths.py` nunca lee ni modifica el manifiesto; recibe solamente el string ya
+extraído. Descarta componentes vacíos o `.` (benignos, se normalizan), rechaza `..` explícitamente, y además comprueba que el resultado final no escape la raíz.
 
 **Qué logra esta capa:**
 - `manifest_v2.csv` no se toca nunca — DEC-003 intacto.
-- En esta máquina (donde `HEMATOVISION_DATASET_ROOT` no se setea), el default apunta a `D:\Datasets\dataset_hematologia` — comportamiento idéntico al actual, cero disrupción.
-- En una máquina nueva, tras `git clone` + `dvc pull` de `ml/data/raw/bodzas.dvc`/`pbc.dvc`, alcanza con `HEMATOVISION_DATASET_ROOT=<repo>/ml/data/raw` para que las mismas filas del manifiesto abran los archivos correctos, sin ningún cambio al CSV.
+- El default es `<repo>/ml/data/raw`; un argumento explícito o `HEMATOVISION_DATASET_ROOT` permite usar cualquier raíz local, incluido el layout histórico actual, sin cambiar el CSV.
+- En una máquina nueva, tras `git clone` + `dvc pull` de `ml/data/raw/Labelled.dvc`/`Labelled_2.dvc`, el default ya abre las mismas filas correctamente bajo `ml/data/raw/`, sin ninguna ruta absoluta de la máquina que creó el manifiesto.
 - Funciona igual en Windows y Linux/GCP porque el split es sobre el string, no sobre semántica de `pathlib` dependiente del SO.
+
+La implementación y sus pruebas ya existen; subir los datasets reales sigue sin autorizarse.
 
 ## 3. Configuración GCS aplicada
 
@@ -182,4 +185,4 @@ Realizada en un **proyecto DVC temporal fuera del repo real** (`dvc init` aislad
 
 ## 11. Qué sigue sin autorizar
 
-Mover o copiar los datasets originales, subir los ~24-25 GiB reales (con `--to-remote` o cualquier otro mecanismo), trackear los manifiestos reales, implementar `ml/src/hematovision_ml/paths.py` (Sección 2.4, diseñado pero no aplicado), entrenar, ejecutar EXP-REPRO, y modificar el modelo publicado — cada uno sigue requiriendo su propia autorización explícita y separada.
+Mover o copiar los datasets originales, subir los ~24-25 GiB reales (con `--to-remote` o cualquier otro mecanismo), trackear los manifiestos reales, entrenar, ejecutar EXP-REPRO, y modificar el modelo publicado — cada uno sigue requiriendo su propia autorización explícita y separada. `ml/src/hematovision_ml/paths.py` ya está implementado y testeado, pero no autoriza subir datos reales.
