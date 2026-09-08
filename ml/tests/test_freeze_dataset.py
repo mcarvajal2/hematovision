@@ -25,6 +25,7 @@ def test_frozen_manifest_rejects_wrong_content(tmp_path):
         verify_frozen_manifest(manifest, freeze_path)
 
 
+# Nota: usa los conjuntos completos de paths (metadata del CSV, no bytes de imagenes) porque la garantia de disjuncion solo es valida sobre el split completo, no sobre una muestra.
 def test_quarantine_is_excluded_and_splits_do_not_overlap():
     train = set(get_train_paths())
     validation = set(get_val_paths())
