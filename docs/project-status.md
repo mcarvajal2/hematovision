@@ -35,4 +35,4 @@ La arqueología local está cerrada. Los próximos pasos requieren una decisión
 
 1. Si se quiere seguir la pista de manifiestos externos (releases originales de Bodzas/PBC con IDs de paciente/sujeto), es una búsqueda fuera de este repositorio y estos discos — decidir si vale la pena antes de invertir tiempo.
 2. Si se autoriza resolver el bloqueo de "dubious ownership" en `D:\Proyectos\Proyecto Hematología` (cambiar configuración Git), podría recuperarse historial adicional — no se hizo sin autorización explícita.
-3. Avanzar a Fase 1 (comprensión, ya mayormente cubierta por [notebook-analysis.md](notebook-analysis.md)) o Fase 2 (baseline reproducible) es la siguiente decisión de alcance/roadmap; no se inició ningún trabajo de modernización o entrenamiento.
+3. Fase 2 (baseline reproducible) ya está en marcha: dataset y split congelados (DEC-003), scaffolding de `ml/src`/`ml/tests` implementado, y DVC preparado localmente con GCS como remoto objetivo (sin bucket creado todavía) -- ver [Plan de Fase 2](phase2-plan.md). No se inició ningún entrenamiento.

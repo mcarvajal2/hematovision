@@ -21,6 +21,7 @@ Este índice separa evidencia histórica, interpretación actual y trabajo futur
 | en qué orden evolucionar | [Roadmap](roadmap.md) |
 | plan propuesto para el baseline reproducible (Fase 2, dataset/split congelados y scaffolding implementado; entrenamiento sin ejecutar) | [Plan de Fase 2](phase2-plan.md) |
 | inventario real de originales, duplicados y propuesta de split (Fase 2) | [Manifiesto de originales](dataset-manifest.md) |
+| DVC local, estrategia de datos y diseño de remoto GCS (sin bucket creado todavía) | [DVC y remoto GCS](dvc-plan.md) |
 | cómo se coordina un equipo multiagente (roles, delegación, revisión, escalamiento) | [Flujo de trabajo multiagente](agent-workflow.md) |
 | cómo funciona el repositorio y la web hoy | [Arquitectura](architecture.md) |
 | alcance y límites del modelo publicado | [Ficha del modelo](model-card.md) |
